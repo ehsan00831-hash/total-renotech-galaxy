@@ -1,0 +1,25 @@
+# One-click deploy config for Render (https://render.com)
+# A persistent disk keeps data/customers.xlsx safe across restarts/redeploys.
+# Note: persistent disks require Render's paid "Starter" instance (~$7/mo).
+# On the free plan, remove the `disk:` block — but enable email backup so leads are never lost.
+services:
+  - type: web
+    name: total-renotech-galaxy
+    runtime: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: DATA_DIR
+        value: /var/data
+      # Set these in the Render dashboard (Environment tab) — never commit secrets.
+      - key: MAIL_USER
+        sync: false
+      - key: MAIL_PASS
+        sync: false
+      - key: LEAD_TO
+        sync: false
+    disk:
+      name: leads-data
+      mountPath: /var/data
+      sizeGB: 1

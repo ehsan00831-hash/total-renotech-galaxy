@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#05070f" />
+  <title>Total — Plomberie &amp; Construction · Votre Propriété, Notre Priorité</title>
+  <meta name="description" content="Total Plomberie & Construction — your partner in plumbing, renovation, construction & engineering. Montréal · 20+ years of craftsmanship." />
+  <link rel="icon" href="assets/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ===== Deep-space animated background ===== -->
+  <canvas id="space"></canvas>
+  <div class="nebula"></div>
+  <div class="vignette"></div>
+
+  <!-- ===== Winding road / scroll path (fixed, comet travels with scroll) ===== -->
+  <svg class="road" viewBox="0 0 120 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="roadGlow" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#43e7ff" />
+        <stop offset="50%" stop-color="#7c5cff" />
+        <stop offset="100%" stop-color="#ffce5c" />
+      </linearGradient>
+    </defs>
+    <path id="roadBase" class="road-base"
+      d="M60,-20 C 18,90 102,180 60,270 S 18,450 60,540 S 102,720 60,810 S 18,990 60,1080" />
+    <path id="roadProgress" class="road-progress" stroke="url(#roadGlow)"
+      d="M60,-20 C 18,90 102,180 60,270 S 18,450 60,540 S 102,720 60,810 S 18,990 60,1080" />
+    <g id="comet" class="comet">
+      <circle r="9" class="comet-halo" />
+      <circle r="4.4" class="comet-core" />
+    </g>
+  </svg>
+
+  <!-- ===== Top bar ===== -->
+  <header class="topbar">
+    <a class="brand" href="#hero" aria-label="Total Plomberie & Construction home">
+      <img class="brand-logo" src="assets/logo.png" alt="Total — Plomberie & Construction" />
+    </a>
+    <a class="cta-pill" href="tel:+15145813015">
+      <span class="dot"></span> +1 (514) 581-3015
+    </a>
+  </header>
+
+  <div class="progress-tag"><span id="progressPct">0</span><small>%</small></div>
+
+  <main>
+    <!-- ===== HERO ===== -->
+    <section class="panel hero" id="hero">
+      <img class="hero-logo" src="assets/logo.png" alt="Total — Plomberie & Construction" />
+      <p class="eyebrow">Montréal · 20+ years of craftsmanship</p>
+      <h1 class="title">Plumbing <span>·</span> Renovation <span>·</span> Construction</h1>
+      <p class="tagline">Votre Propriété, <b>Notre Priorité</b> — one licensed team for your every build, repair &amp; renovation.</p>
+      <a class="scroll-hint" href="#renovation">
+        <span>Begin the journey</span>
+        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 4v14M6 13l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </section>
+
+    <!-- ===== RENOVATION ===== -->
+    <section class="panel" id="renovation">
+      <div class="panel-head">
+        <span class="chapter">01 · Renovation</span>
+        <h2>Spaces, reimagined.</h2>
+        <p>Kitchens and bathrooms rebuilt from the studs up — modern, durable, beautifully finished.</p>
+      </div>
+      <div class="orbit">
+        <a class="planet" data-url="https://www.totalrenotech.ca/services/kitchen-renovation/" style="--accent:#ff8a5c; --img:url('assets/projects/kitchen.jpg')">
+          <span class="planet-ico">🍳</span>
+          <h3>Kitchen Renovation</h3>
+          <p>Custom cabinetry, counters &amp; layouts that work.</p>
+          <span class="enter">Enter site →</span>
+        </a>
+        <a class="planet" data-url="https://www.totalrenotech.ca/services/bathroom-renovation/" style="--accent:#43e7ff; --img:url('assets/projects/bathroom.jpg')">
+          <span class="planet-ico">🛁</span>
+          <h3>Bathroom Renovation</h3>
+          <p>Spa-grade redesigns, tiling &amp; fixtures.</p>
+          <span class="enter">Enter site →</span>
+        </a>
+        <a class="planet" data-url="https://www.totalrenotech.ca/services/home-improvement/" style="--accent:#ffce5c; --img:url('assets/projects/home.jpg')">
+          <span class="planet-ico">🏠</span>
+          <h3>Home Improvement</h3>
+          <p>Flooring, painting &amp; full property upgrades.</p>
+          <span class="enter">Enter site →</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ===== CONSTRUCTION ===== -->
+    <section class="panel" id="construction">
+      <div class="panel-head">
+        <span class="chapter">02 · Construction</span>
+        <h2>Built to last.</h2>
+        <p>Licensed general contracting for residential &amp; commercial projects — engineered, on time, on budget.</p>
+      </div>
+      <div class="orbit">
+        <a class="planet wide" data-url="https://www.totalrenotech.ca/services/" style="--accent:#7c5cff; --img:url('assets/projects/construction.jpg')">
+          <span class="planet-ico">🏗️</span>
+          <h3>General Contracting</h3>
+          <p>Full builds, structural work &amp; project management from a single licensed team.</p>
+          <span class="enter">Explore services →</span>
+        </a>
+        <a class="planet wide" data-url="https://www.totalrenotech.ca/about-us/" style="--accent:#43e7ff; --img:url('assets/projects/experience.jpg')">
+          <span class="planet-ico">🛠️</span>
+          <h3>20+ Years of Experience</h3>
+          <p>Certified craftsmanship behind every wall, pipe &amp; beam.</p>
+          <span class="enter">About us →</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ===== PLUMBING ===== -->
+    <section class="panel" id="plumbing">
+      <div class="panel-head">
+        <span class="chapter">03 · Plumbing</span>
+        <h2>Flow without worry.</h2>
+        <p>From precise installations to round-the-clock emergencies — water, heated, pumped &amp; perfectly piped.</p>
+      </div>
+      <div class="orbit">
+        <a class="planet" data-url="https://www.totalrenotech.ca/services/plumbing-repair-installations/" style="--accent:#43e7ff; --img:url('assets/projects/plumbing.jpg')">
+          <span class="planet-ico">🔧</span>
+          <h3>Repairs &amp; Installations</h3>
+          <p>Water heaters, pumps, pipes &amp; sewer lines.</p>
+          <span class="enter">Enter site →</span>
+        </a>
+        <a class="planet" data-url="https://www.totalrenotech.ca/services/emergency-plumbing/" style="--accent:#ff5c7c; --img:url('assets/projects/emergency.jpg')">
+          <span class="planet-ico">🚨</span>
+          <h3>Emergency Plumbing</h3>
+          <p>Fast response when every minute counts.</p>
+          <span class="enter">Enter site →</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ===== CONTACT / DESTINATION ===== -->
+    <section class="panel contact" id="contact">
+      <div class="panel-head">
+        <span class="chapter">04 · Destination</span>
+        <h2>Let's build something together.</h2>
+        <p>Every link below is a portal — tap one to travel onward.</p>
+      </div>
+
+      <div class="contact-grid">
+        <a class="contact-card" href="tel:+15145813015">
+          <span class="ci">📞</span><b>Call us</b><small>+1 (514) 581-3015</small>
+        </a>
+        <a class="contact-card" data-url="https://maps.google.com/?q=15+100e+Avenue,+Notre-Dame-de-l'Île-Perrot,+QC+J7W+0L2">
+          <span class="ci">📍</span><b>Visit</b><small>Notre-Dame-de-l'Île-Perrot, QC</small>
+        </a>
+        <div class="contact-card static">
+          <span class="ci">🕑</span><b>Hours</b><small>Mon–Thu 7–5 · Fri 8–4</small>
+        </div>
+      </div>
+
+      <!-- ===== Link constellation (the Taplink buttons) ===== -->
+      <div class="links">
+        <button class="link-btn" data-form="quote" style="--c:#1a3a6b">
+          <span class="lb-ico">✉️</span>
+          <span class="lb-txt"><b>Contact Me</b><small>Request a free quote</small></span>
+          <span class="lb-go">›</span>
+        </button>
+        <a class="link-btn" data-url="https://www.totalrenotech.ca/" style="--c:#111316">
+          <span class="lb-ico">🌐</span>
+          <span class="lb-txt"><b>Website</b><small>totalrenotech.ca</small></span>
+          <span class="lb-go">›</span>
+        </a>
+        <a class="link-btn" data-url="https://www.facebook.com/totalrenotech.ca" style="--c:#1877f2">
+          <span class="lb-ico">f</span>
+          <span class="lb-txt"><b>Facebook</b><small>@totalrenotech.ca</small></span>
+          <span class="lb-go">›</span>
+        </a>
+        <a class="link-btn" data-url="https://www.instagram.com/totalrenotech/" style="--c:#e1306c">
+          <span class="lb-ico">📷</span>
+          <span class="lb-txt"><b>Instagram</b><small>@totalrenotech</small></span>
+          <span class="lb-go">›</span>
+        </a>
+        <a class="link-btn" data-url="https://wa.me/15145813015" style="--c:#25d366">
+          <span class="lb-ico">🟢</span>
+          <span class="lb-txt"><b>WhatsApp</b><small>Chat with us now</small></span>
+          <span class="lb-go">›</span>
+        </a>
+        <a class="link-btn" data-url="https://www.google.com/search?q=Total+R%C3%A9no-Tech+Inc.+reviews" style="--c:#0b5d3b">
+          <span class="lb-ico">⭐</span>
+          <span class="lb-txt"><b>Review</b><small>Please help us improve</small></span>
+          <span class="lb-go">›</span>
+        </a>
+        <button class="link-btn" data-form="comment" style="--c:#10306b">
+          <span class="lb-ico">💬</span>
+          <span class="lb-txt"><b>Comments For Us</b><small>Leave your feedback</small></span>
+          <span class="lb-go">›</span>
+        </button>
+        <button class="link-btn" data-form="specification" style="--c:#0e2a52">
+          <span class="lb-ico">📋</span>
+          <span class="lb-txt"><b>Specifications</b><small>Client specifications</small></span>
+          <span class="lb-go">›</span>
+        </button>
+      </div>
+
+      <!-- Primary CTA -->
+      <button class="lead-portal" data-form="quote" id="openLead">
+        <span class="lp-glow"></span>
+        <span class="lp-label">★ Become our client — request a free quote</span>
+        <span class="lp-sub">Leave your details and we'll reach out</span>
+      </button>
+
+      <footer class="footer">© <span id="year"></span> Total — Plomberie &amp; Construction · Crafted among the stars.</footer>
+    </section>
+  </main>
+
+  <!-- ===== Dynamic modal (quote / comment / specification) ===== -->
+  <div class="modal-wrap" id="leadModal" aria-hidden="true">
+    <div class="modal-backdrop" data-close></div>
+    <form class="modal" id="leadForm" novalidate>
+      <button type="button" class="modal-x" data-close aria-label="Close">×</button>
+      <img class="modal-logo" src="assets/logo.png" alt="Total" />
+      <h3 id="modalTitle">Request your free quote</h3>
+      <p class="modal-sub" id="modalSub">We keep your details private and reach out shortly.</p>
+      <div id="modalFields"></div>
+      <p class="form-msg" id="formMsg" role="status"></p>
+      <button type="submit" class="submit-btn" id="submitBtn"><span>Launch my request 🚀</span></button>
+    </form>
+  </div>
+
+  <!-- ===== Warp overlay ===== -->
+  <div class="warp" id="warp" aria-hidden="true">
+    <canvas id="warpCanvas"></canvas>
+    <div class="warp-label" id="warpLabel">Entering hyperspace…</div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
