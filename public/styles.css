@@ -467,6 +467,57 @@ main { position: relative; z-index: 10; }
   font-size: 13px;
 }
 
+/* ---------- Trust badges ---------- */
+.badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.badge {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: #dfe7ff;
+  background: rgba(18, 26, 54, 0.5);
+  border: 1px solid var(--glass-brd);
+  backdrop-filter: blur(8px);
+}
+.badge.gold {
+  color: var(--gold);
+  border-color: rgba(255, 206, 92, 0.4);
+  box-shadow: 0 0 18px rgba(255, 206, 92, 0.18);
+}
+
+/* ---------- Framed photos (team + business card) ---------- */
+.photo-frame {
+  position: relative;
+  margin: 0 auto;
+  max-width: 980px;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid var(--glass-brd);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(67, 231, 255, 0.12);
+}
+.photo-frame img { display: block; width: 100%; height: auto; }
+.team-photo figcaption {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 38px 24px 16px;
+  font-size: 13.5px;
+  color: #e7ecff;
+  background: linear-gradient(transparent, rgba(4, 6, 14, 0.85));
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+.card-frame {
+  max-width: 640px;
+  margin-top: 30px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 206, 92, 0.2);
+}
+.card-frame figcaption {
+  padding: 12px 18px 2px;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+
 /* ---------- Lead modal ---------- */
 .modal-wrap {
   position: fixed;
@@ -596,7 +647,7 @@ main { position: relative; z-index: 10; }
 }
 
 /* ---------- Reveal on scroll ---------- */
-.panel-head, .planet, .contact-grid, .links, .lead-portal {
+.panel-head, .planet, .contact-grid, .links, .lead-portal, .photo-frame {
   opacity: 0;
   transform: translateY(30px);
   transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1);
@@ -605,7 +656,8 @@ main { position: relative; z-index: 10; }
 .panel.in .planet,
 .panel.in .contact-grid,
 .panel.in .links,
-.panel.in .lead-portal { opacity: 1; transform: none; }
+.panel.in .lead-portal,
+.panel.in .photo-frame { opacity: 1; transform: none; }
 .panel.in .planet:nth-child(2) { transition-delay: .1s; }
 .panel.in .planet:nth-child(3) { transition-delay: .2s; }
 .hero .eyebrow, .hero .title, .hero .tagline, .hero .scroll-hint, .hero-logo { opacity: 1; transform: none; }
