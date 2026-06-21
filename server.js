@@ -12,10 +12,26 @@ const path = require('path');
 const fs = require('fs');
 const express = require('express');
 const ExcelJS = require('exceljs');
+const rateLimit = require('express-rate-limit');
 const mailer = require('./mailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Render (and most hosting platforms) sit behind a reverse proxy.
+// Trust the first hop so express-rate-limit sees the real client IP.
+app.set('trust proxy', 1);
+
+// 10 requests per 15 minutes per IP, applied only to the form endpoints.
+const formLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  handler: (_req, res) => {
+    res.status(429).json({ ok: false, error: 'rate_limited', retryAfter: 15 });
+  },
+});
 
 // DATA_DIR can be overridden (e.g. a mounted persistent disk on a cloud host)
 // so the Excel file survives restarts/redeploys.
@@ -115,7 +131,7 @@ const emailOk = (e) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e);
 const phoneOk = (p) => /[0-9]{6,}/.test(String(p).replace(/[^0-9]/g, ''));
 
 // ---- Quote / Contact ----
-app.post('/api/lead', handle(FORMS.quote, (b) => {
+app.post('/api/lead', formLimiter, handle(FORMS.quote, (b) => {
   const data = {
     firstName: clean(b.firstName, 80),
     lastName: clean(b.lastName, 80),
@@ -131,7 +147,7 @@ app.post('/api/lead', handle(FORMS.quote, (b) => {
 }));
 
 // ---- Comments ----
-app.post('/api/comment', handle(FORMS.comment, (b) => {
+app.post('/api/comment', formLimiter, handle(FORMS.comment, (b) => {
   const data = {
     name: clean(b.name, 100),
     email: clean(b.email, 160),
@@ -144,7 +160,7 @@ app.post('/api/comment', handle(FORMS.comment, (b) => {
 }));
 
 // ---- Client Specifications ----
-app.post('/api/specification', handle(FORMS.specification, (b) => {
+app.post('/api/specification', formLimiter, handle(FORMS.specification, (b) => {
   const data = {
     name: clean(b.name, 100),
     email: clean(b.email, 160),
