@@ -12,7 +12,7 @@ const path = require('path');
 const fs = require('fs');
 const express = require('express');
 const ExcelJS = require('exceljs');
-const rateLimit = require('express-rate-limit');
+const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 const mailer = require('./mailer');
 
 const app = express();
@@ -23,11 +23,15 @@ const PORT = process.env.PORT || 3000;
 app.set('trust proxy', 1);
 
 // 10 requests per 15 minutes per IP, applied only to the form endpoints.
+// keyGenerator: prefer CF-Connecting-IP (set by Cloudflare's edge, unforgeable by clients)
+// so the limiter tracks the real client even behind Cloudflare → Render's two-hop proxy chain.
+// Falls back to req.ip (works in local dev where Cloudflare is not present).
 const formLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 10,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
+  keyGenerator: (req) => req.headers['cf-connecting-ip'] || ipKeyGenerator(req.ip),
   handler: (_req, res) => {
     res.status(429).json({ ok: false, error: 'rate_limited', retryAfter: 15 });
   },
