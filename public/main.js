@@ -277,6 +277,8 @@
         html += fieldHTML(f);
       }
     }
+    // Honeypot: invisible to real users, bots fill it and get silently discarded server-side.
+    html += '<input name="website" type="text" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;" />';
     fieldsBox.innerHTML = html;
   }
 
@@ -333,10 +335,12 @@
     var label = submitBtn.querySelector('span').textContent;
     submitBtn.querySelector('span').textContent = 'Launching…';
 
+    var hp = form['website'];
+    var payload = Object.assign({}, v.data, { website: hp ? hp.value : '' });
     fetch(current.endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(v.data)
+      body: JSON.stringify(payload)
     })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (res) {

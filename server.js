@@ -104,6 +104,9 @@ async function appendRow(form, values) {
 function handle(form, extractAndValidate) {
   return (req, res) => {
     const body = req.body || {};
+    // Honeypot: bots fill the hidden "website" field; real browsers leave it empty.
+    // Return a fake success so the bot does not know it was caught.
+    if (body.website) return res.json({ ok: true });
     const result = extractAndValidate(body);
     if (result.error) {
       return res.status(400).json({ ok: false, error: result.error, fields: result.fields });
