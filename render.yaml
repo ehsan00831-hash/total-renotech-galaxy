@@ -18,6 +18,12 @@ services:
         sync: false
       - key: LEAD_TO
         sync: false
+      # Optional — enable LIVE Google rating/review count on the site.
+      # Leave blank to use the built-in graceful fallback.
+      - key: GOOGLE_PLACES_API_KEY
+        sync: false
+      - key: GOOGLE_PLACE_ID
+        sync: false
 
 # -------------------------------------------------------------------
 # OPTIONAL: keep data/customers.xlsx permanently (paid Starter plan, ~$7/mo).

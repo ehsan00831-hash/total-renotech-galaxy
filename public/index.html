@@ -1,265 +1,253 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#05070f" />
-  <title>Total — Plomberie &amp; Construction · Votre Propriété, Notre Priorité</title>
-  <meta name="description" content="Total Plomberie & Construction — your partner in plumbing, renovation, construction & engineering. Montréal · 20+ years of craftsmanship." />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Total Réno-Tech — 5-Star Rated Renovation &amp; Restoration in Montreal</title>
+  <meta name="description" content="Total Réno-Tech — 5-star rated renovation, construction, plumbing & emergency water-damage restoration in Montreal. Since 2002 · RBQ 5721-3423-01. Call (514) 581-3015." />
   <link rel="icon" href="assets/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- ===== Deep-space animated background ===== -->
-  <canvas id="space"></canvas>
-  <div class="nebula"></div>
-  <div class="vignette"></div>
 
-  <!-- ===== Winding road / scroll path (fixed, comet travels with scroll) ===== -->
-  <svg class="road" viewBox="0 0 120 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-    <defs>
-      <linearGradient id="roadGlow" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#43e7ff" />
-        <stop offset="50%" stop-color="#7c5cff" />
-        <stop offset="100%" stop-color="#ffce5c" />
-      </linearGradient>
-    </defs>
-    <path id="roadBase" class="road-base"
-      d="M60,-20 C 18,90 102,180 60,270 S 18,450 60,540 S 102,720 60,810 S 18,990 60,1080" />
-    <path id="roadProgress" class="road-progress" stroke="url(#roadGlow)"
-      d="M60,-20 C 18,90 102,180 60,270 S 18,450 60,540 S 102,720 60,810 S 18,990 60,1080" />
-    <g id="comet" class="comet">
-      <circle r="9" class="comet-halo" />
-      <circle r="4.4" class="comet-core" />
-    </g>
-  </svg>
-
-  <!-- ===== Top bar ===== -->
-  <header class="topbar">
-    <a class="brand" href="#hero" aria-label="Total Plomberie & Construction home">
-      <img class="brand-logo" src="assets/logo.png" alt="Total — Plomberie & Construction" />
+  <!-- ===== Header ===== -->
+  <header class="site-header" id="siteHeader">
+    <a class="brand" href="#top" aria-label="Total Réno-Tech home">
+      <img src="assets/logo.png" alt="Total Réno-Tech — Plomberie & Construction" class="brand-logo" />
     </a>
-    <a class="cta-pill" href="tel:+15145813015">
-      <span class="dot"></span> +1 (514) 581-3015
-    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#services">Services</a>
+      <a href="#emergency" class="nav-emergency">Flood Emergency</a>
+      <a href="#projects">Projects</a>
+      <a href="#reviews">Reviews</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <div class="header-actions">
+      <a class="btn btn-ghost btn-sm" href="tel:+15145813015">📞 (514) 581-3015</a>
+      <button class="btn btn-primary btn-sm" data-form="quote">Get Free Estimate</button>
+    </div>
   </header>
 
-  <div class="progress-tag"><span id="progressPct">0</span><small>%</small></div>
+  <main id="top">
 
-  <main>
     <!-- ===== HERO ===== -->
-    <section class="panel hero" id="hero">
-      <img class="hero-logo" src="assets/logo.png" alt="Total — Plomberie & Construction" />
-      <p class="eyebrow">Montréal · Since 2002 · ★ 5.0 Google</p>
-      <h1 class="title">Plumbing <span>·</span> Renovation <span>·</span> Construction</h1>
-      <p class="tagline">Votre Propriété, <b>Notre Priorité</b> — one licensed team for your every build, repair &amp; renovation.</p>
-      <div class="badges">
-        <span class="badge gold">★ 5.0 Google Reviews</span>
-        <span class="badge">Since 2002</span>
-        <span class="badge">RBQ 5721-3423-01</span>
-        <span class="badge">Montréal · W·S·N·E</span>
-      </div>
-      <a class="scroll-hint" href="#renovation">
-        <span>Begin the journey</span>
-        <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 4v14M6 13l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </a>
-    </section>
+    <section class="hero">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Montréal · Since 2002 · RBQ 5721-3423-01</p>
+          <h1>5-Star Rated Renovation &amp; Restoration Company in Montreal</h1>
+          <p class="lede">Plumbing, renovation, construction &amp; emergency water-damage restoration — one licensed team, trusted for over 20 years.</p>
+          <div class="cta-row">
+            <a class="btn btn-primary" href="tel:+15145813015">📞 Call Now</a>
+            <button class="btn btn-gold" data-form="quote">Get Free Estimate</button>
+            <a class="btn btn-ghost" href="#" data-glink="read" target="_blank" rel="noopener">Read Google Reviews</a>
+          </div>
+          <ul class="trust-chips" aria-label="Credentials">
+            <li>✔ Licensed — RBQ 5721-3423-01</li>
+            <li>✔ Since 2002</li>
+            <li>✔ Montréal — West · South · North · East</li>
+          </ul>
+        </div>
 
-    <!-- ===== RENOVATION ===== -->
-    <section class="panel" id="renovation">
-      <div class="panel-head">
-        <span class="chapter">01 · Renovation</span>
-        <h2>Spaces, reimagined.</h2>
-        <p>Kitchens and bathrooms rebuilt from the studs up — modern, durable, beautifully finished.</p>
-      </div>
-      <div class="orbit">
-        <a class="planet" data-url="https://www.totalrenotech.ca/services/kitchen-renovation/" style="--accent:#ff8a5c; --img:url('assets/projects/kitchen.jpg')">
-          <span class="planet-ico">🍳</span>
-          <h3>Kitchen Renovation</h3>
-          <p>Custom cabinetry, counters &amp; layouts that work.</p>
-          <span class="enter">Enter site →</span>
-        </a>
-        <a class="planet" data-url="https://www.totalrenotech.ca/services/bathroom-renovation/" style="--accent:#43e7ff; --img:url('assets/projects/bathroom.jpg')">
-          <span class="planet-ico">🛁</span>
-          <h3>Bathroom Renovation</h3>
-          <p>Spa-grade redesigns, tiling &amp; fixtures.</p>
-          <span class="enter">Enter site →</span>
-        </a>
-        <a class="planet" data-url="https://www.totalrenotech.ca/services/home-improvement/" style="--accent:#ffce5c; --img:url('assets/projects/home.jpg')">
-          <span class="planet-ico">🏠</span>
-          <h3>Home Improvement</h3>
-          <p>Flooring, painting &amp; full property upgrades.</p>
-          <span class="enter">Enter site →</span>
-        </a>
+        <!-- Google trust card -->
+        <aside class="gcard reveal" aria-label="Google rating">
+          <div class="gcard-head">
+            <span class="glogo" aria-hidden="true"><b class="g1">G</b><b class="g2">o</b><b class="g3">o</b><b class="g1">g</b><b class="g4">l</b><b class="g2">e</b></span>
+            <span class="gcard-badge">Top Rated</span>
+          </div>
+          <div class="grating">
+            <span class="grating-num" id="gRating">5.0</span>
+            <span class="stars" aria-label="5 out of 5 stars">★★★★★</span>
+          </div>
+          <p class="gcount" id="gCount">Rated 5.0 by our clients on Google</p>
+          <p class="gquote">“Your property, our priority.”</p>
+          <div class="gcard-actions">
+            <a class="btn btn-primary btn-sm" href="#" data-glink="read" target="_blank" rel="noopener">Read Reviews</a>
+            <a class="btn btn-goldline btn-sm" href="#" data-glink="write" target="_blank" rel="noopener">★ Leave a Review</a>
+          </div>
+        </aside>
       </div>
     </section>
 
-    <!-- ===== CONSTRUCTION ===== -->
-    <section class="panel" id="construction">
-      <div class="panel-head">
-        <span class="chapter">02 · Construction</span>
-        <h2>Built to last.</h2>
-        <p>Licensed general contracting for residential &amp; commercial projects — engineered, on time, on budget.</p>
-      </div>
-      <div class="orbit">
-        <a class="planet wide" data-url="https://www.totalrenotech.ca/services/" style="--accent:#7c5cff; --img:url('assets/projects/construction.jpg')">
-          <span class="planet-ico">🏗️</span>
-          <h3>General Contracting</h3>
-          <p>Full builds, structural work &amp; project management from a single licensed team.</p>
-          <span class="enter">Explore services →</span>
-        </a>
-        <a class="planet wide" data-url="https://www.totalrenotech.ca/about-us/" style="--accent:#43e7ff; --img:url('assets/projects/experience.jpg')">
-          <span class="planet-ico">🛠️</span>
-          <h3>20+ Years of Experience</h3>
-          <p>Certified craftsmanship behind every wall, pipe &amp; beam.</p>
-          <span class="enter">About us →</span>
-        </a>
+    <!-- ===== SERVICES ===== -->
+    <section class="section" id="services">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="kicker">What we do</p>
+          <h2>Premium services, one licensed team.</h2>
+        </div>
+        <div class="cards-3">
+          <a class="svc-card reveal" href="https://www.totalrenotech.ca/services/" target="_blank" rel="noopener">
+            <img src="assets/projects/kitchen.jpg" alt="Modern kitchen renovation by Total Réno-Tech" loading="lazy" />
+            <div class="svc-body">
+              <h3>Renovation</h3>
+              <p>Kitchens, bathrooms &amp; full property upgrades — beautifully finished.</p>
+              <span class="svc-link">Explore →</span>
+            </div>
+          </a>
+          <a class="svc-card reveal" href="https://www.totalrenotech.ca/services/" target="_blank" rel="noopener">
+            <img src="assets/projects/construction.jpg" alt="Commercial construction project by Total Réno-Tech" loading="lazy" />
+            <div class="svc-body">
+              <h3>Construction</h3>
+              <p>Licensed general contracting for residential &amp; commercial builds.</p>
+              <span class="svc-link">Explore →</span>
+            </div>
+          </a>
+          <a class="svc-card reveal" href="https://www.totalrenotech.ca/services/emergency-plumbing/" target="_blank" rel="noopener">
+            <img src="assets/projects/plumbing.jpg" alt="Professional plumbing installation by Total Réno-Tech" loading="lazy" />
+            <div class="svc-body">
+              <h3>Plumbing</h3>
+              <p>Repairs, installations &amp; 24/7 emergency response.</p>
+              <span class="svc-link">Explore →</span>
+            </div>
+          </a>
+        </div>
       </div>
     </section>
 
-    <!-- ===== PLUMBING ===== -->
-    <section class="panel" id="plumbing">
-      <div class="panel-head">
-        <span class="chapter">03 · Plumbing</span>
-        <h2>Flow without worry.</h2>
-        <p>From precise installations to round-the-clock emergencies — water, heated, pumped &amp; perfectly piped.</p>
+    <!-- ===== FLOOD / EMERGENCY ===== -->
+    <section class="section emergency" id="emergency">
+      <div class="container emergency-panel reveal">
+        <div class="emergency-copy">
+          <span class="badge-247">⚡ 24/7 Emergency</span>
+          <h2>Flood &amp; Water Damage? We're already on the way.</h2>
+          <p class="lede-light">Rapid emergency restoration across Montreal — professional extraction, drying and repair, handled end-to-end by one certified team.</p>
+          <ul class="emergency-list">
+            <li>💧 Water extraction &amp; flood cleanup</li>
+            <li>🌀 Industrial drying equipment &amp; air movers</li>
+            <li>🌡️ Commercial dehumidifiers</li>
+            <li>🛠️ Full restoration &amp; repair after damage</li>
+          </ul>
+          <div class="cta-row">
+            <a class="btn btn-gold" href="tel:+15145813015">📞 Call Now — (514) 581-3015</a>
+            <button class="btn btn-light" data-form="emergency">Request Emergency Service</button>
+            <button class="btn btn-ghostlight" data-form="quote">Get Free Estimate</button>
+          </div>
+        </div>
+        <figure class="emergency-figure">
+          <img src="assets/flood-poster.jpg" alt="Total Réno-Tech emergency flood services" loading="lazy"
+               onerror="this.closest('.emergency-figure').classList.add('no-img')" />
+          <div class="emergency-fallback" aria-hidden="true">
+            <span>🚨</span>
+            <b>Emergency Flood Response</b>
+            <small>Montréal &amp; surrounding areas</small>
+          </div>
+        </figure>
       </div>
-      <div class="orbit">
-        <a class="planet" data-url="https://www.totalrenotech.ca/services/plumbing-repair-installations/" style="--accent:#43e7ff; --img:url('assets/projects/plumbing.jpg')">
-          <span class="planet-ico">🔧</span>
-          <h3>Repairs &amp; Installations</h3>
-          <p>Water heaters, pumps, pipes &amp; sewer lines.</p>
-          <span class="enter">Enter site →</span>
-        </a>
-        <a class="planet" data-url="https://www.totalrenotech.ca/services/emergency-plumbing/" style="--accent:#ff5c7c; --img:url('assets/projects/emergency.jpg')">
-          <span class="planet-ico">🚨</span>
-          <h3>Emergency Plumbing</h3>
-          <p>Fast response when every minute counts.</p>
-          <span class="enter">Enter site →</span>
-        </a>
+    </section>
+
+    <!-- ===== PROJECTS ===== -->
+    <section class="section" id="projects">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="kicker">Our work</p>
+          <h2>Real projects. Real results.</h2>
+        </div>
+        <div class="projects-grid">
+          <figure class="proj reveal"><img src="assets/projects/kitchen.jpg" alt="Kitchen renovation" loading="lazy" /><figcaption>Kitchen Renovation</figcaption></figure>
+          <figure class="proj reveal"><img src="assets/projects/bathroom.jpg" alt="Bathroom renovation" loading="lazy" /><figcaption>Bathroom Renovation</figcaption></figure>
+          <figure class="proj reveal"><img src="assets/projects/home.jpg" alt="Home improvement — walls and floors" loading="lazy" /><figcaption>Home Improvement</figcaption></figure>
+          <figure class="proj reveal"><img src="assets/projects/construction.jpg" alt="Commercial construction" loading="lazy" /><figcaption>Commercial</figcaption></figure>
+          <figure class="proj reveal"><img src="assets/projects/plumbing.jpg" alt="Plumbing installation" loading="lazy" /><figcaption>Plumbing</figcaption></figure>
+          <figure class="proj reveal"><img src="assets/projects/experience.jpg" alt="Custom fireplace finish" loading="lazy" /><figcaption>Custom Finishes</figcaption></figure>
+        </div>
       </div>
     </section>
 
     <!-- ===== TEAM ===== -->
-    <section class="panel team" id="team">
-      <div class="panel-head">
-        <span class="chapter">04 · The Crew</span>
-        <h2>The team behind the work.</h2>
-        <p>A licensed crew &amp; full fleet serving Montréal since 2002 — west, south, north &amp; east.</p>
+    <section class="section team-section">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="kicker">The crew</p>
+          <h2>A certified team &amp; full fleet, serving all of Montréal.</h2>
+        </div>
+        <figure class="team-frame reveal">
+          <img src="assets/team.jpg" alt="The Total Réno-Tech team and service fleet in Montreal" loading="lazy" />
+        </figure>
       </div>
-      <figure class="photo-frame team-photo">
-        <img src="assets/team.jpg" alt="The Total Réno-Tech team and Sprinter fleet at Montréal's Orange Julep" loading="lazy" onerror="this.closest('.photo-frame').style.display='none'" />
-        <figcaption>Our certified crew &amp; fleet · Montréal</figcaption>
-      </figure>
     </section>
 
-    <!-- ===== CONTACT / DESTINATION ===== -->
-    <section class="panel contact" id="contact">
-      <div class="panel-head">
-        <span class="chapter">05 · Destination</span>
-        <h2>Let's build something together.</h2>
-        <p>Every link below is a portal — tap one to travel onward.</p>
-      </div>
-
-      <div class="contact-grid">
-        <a class="contact-card" href="tel:+15145813015">
-          <span class="ci">📞</span><b>Call us</b><small>+1 (514) 581-3015</small>
-        </a>
-        <a class="contact-card" href="mailto:info@totalrenotech.ca">
-          <span class="ci">✉️</span><b>Email</b><small>info@totalrenotech.ca</small>
-        </a>
-        <a class="contact-card" data-url="https://maps.google.com/?q=15+100e+Avenue,+Notre-Dame-de-l'Île-Perrot,+QC+J7W+0L2">
-          <span class="ci">📍</span><b>Serving</b><small>Montréal — W · S · N · E</small>
-        </a>
-        <div class="contact-card static">
-          <span class="ci">🕑</span><b>Hours</b><small>Mon–Thu 7–5 · Fri 8–4</small>
+    <!-- ===== REVIEWS ===== -->
+    <section class="section reviews-section" id="reviews">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="kicker">Reputation</p>
+          <h2>Rated <span class="gold-text">★ 5.0</span> by our clients on Google.</h2>
+          <p class="section-sub" id="reviewsSub">Since 2002, our reputation has been built one project at a time.</p>
+        </div>
+        <div class="reviews-grid" id="reviewsGrid" hidden></div>
+        <div class="cta-row center reveal">
+          <a class="btn btn-primary" href="#" data-glink="read" target="_blank" rel="noopener">Read Google Reviews</a>
+          <a class="btn btn-goldline" href="#" data-glink="write" target="_blank" rel="noopener">★ Leave a Google Review</a>
         </div>
       </div>
+    </section>
 
-      <!-- Official business card (Hamed Tabrizi) -->
-      <figure class="photo-frame card-frame">
-        <img src="assets/card.jpg" alt="Total Réno-Tech official business card — Hamed Tabrizi, RBQ 5721-3423-01, info@totalrenotech.ca" loading="lazy" onerror="this.closest('.photo-frame').style.display='none'" />
-        <figcaption>Hamed Tabrizi · RBQ 5721-3423-01 · Google 5.0 ★ since 2002</figcaption>
-      </figure>
-
-      <!-- ===== Link constellation (the Taplink buttons) ===== -->
-      <div class="links">
-        <button class="link-btn" data-form="quote" style="--c:#1a3a6b">
-          <span class="lb-ico">✉️</span>
-          <span class="lb-txt"><b>Contact Me</b><small>Request a free quote</small></span>
-          <span class="lb-go">›</span>
-        </button>
-        <a class="link-btn" data-url="https://www.totalrenotech.ca/" style="--c:#111316">
-          <span class="lb-ico">🌐</span>
-          <span class="lb-txt"><b>Website</b><small>totalrenotech.ca</small></span>
-          <span class="lb-go">›</span>
-        </a>
-        <a class="link-btn" data-url="https://www.facebook.com/totalrenotech.ca" style="--c:#1877f2">
-          <span class="lb-ico">f</span>
-          <span class="lb-txt"><b>Facebook</b><small>@totalrenotech.ca</small></span>
-          <span class="lb-go">›</span>
-        </a>
-        <a class="link-btn" data-url="https://www.instagram.com/totalrenotech/" style="--c:#e1306c">
-          <span class="lb-ico">📷</span>
-          <span class="lb-txt"><b>Instagram</b><small>@totalrenotech</small></span>
-          <span class="lb-go">›</span>
-        </a>
-        <a class="link-btn" data-url="https://wa.me/15145813015" style="--c:#25d366">
-          <span class="lb-ico">🟢</span>
-          <span class="lb-txt"><b>WhatsApp</b><small>Chat with us now</small></span>
-          <span class="lb-go">›</span>
-        </a>
-        <a class="link-btn" data-url="https://www.google.com/search?q=Total+R%C3%A9no-Tech+Inc.+reviews" style="--c:#0b5d3b">
-          <span class="lb-ico">⭐</span>
-          <span class="lb-txt"><b>Review</b><small>Please help us improve</small></span>
-          <span class="lb-go">›</span>
-        </a>
-        <button class="link-btn" data-form="comment" style="--c:#10306b">
-          <span class="lb-ico">💬</span>
-          <span class="lb-txt"><b>Comments For Us</b><small>Leave your feedback</small></span>
-          <span class="lb-go">›</span>
-        </button>
-        <button class="link-btn" data-form="specification" style="--c:#0e2a52">
-          <span class="lb-ico">📋</span>
-          <span class="lb-txt"><b>Specifications</b><small>Client specifications</small></span>
-          <span class="lb-go">›</span>
-        </button>
+    <!-- ===== CONTACT ===== -->
+    <section class="section contact-section" id="contact">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="kicker">Contact</p>
+          <h2>Let's talk about your project.</h2>
+        </div>
+        <div class="contact-grid">
+          <a class="ccard reveal" href="tel:+15145813015"><span>📞</span><b>Call</b><small>(514) 581-3015</small></a>
+          <a class="ccard reveal" href="mailto:info@totalrenotech.ca"><span>✉️</span><b>Email</b><small>info@totalrenotech.ca</small></a>
+          <div class="ccard reveal"><span>📍</span><b>Service Area</b><small>Montréal &amp; surrounding areas</small></div>
+          <div class="ccard reveal"><span>🕑</span><b>Hours</b><small>Mon–Thu 7–5 · Fri 8–4 · 24/7 emergency</small></div>
+        </div>
+        <div class="contact-actions reveal">
+          <button class="btn btn-primary" data-form="quote">Get Free Estimate</button>
+          <button class="btn btn-ghost" data-form="specification">Send Project Specifications</button>
+          <button class="btn btn-ghost" data-form="comment">Leave Us a Comment</button>
+        </div>
       </div>
-
-      <!-- Primary CTA -->
-      <button class="lead-portal" data-form="quote" id="openLead">
-        <span class="lp-glow"></span>
-        <span class="lp-label">★ Become our client — request a free quote</span>
-        <span class="lp-sub">Leave your details and we'll reach out</span>
-      </button>
-
-      <footer class="footer">© <span id="year"></span> Total — Plomberie &amp; Construction · RBQ 5721-3423-01 · Crafted among the stars.</footer>
     </section>
   </main>
 
-  <!-- ===== Dynamic modal (quote / comment / specification) ===== -->
+  <!-- ===== Footer ===== -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <img src="assets/logo.png" alt="Total Réno-Tech" class="footer-logo" />
+        <p class="footer-tag">Your Property, Our Priority.</p>
+      </div>
+      <div class="footer-links">
+        <a href="tel:+15145813015">📞 (514) 581-3015</a>
+        <a href="mailto:info@totalrenotech.ca">✉️ info@totalrenotech.ca</a>
+        <a href="https://www.totalrenotech.ca/" target="_blank" rel="noopener">🌐 totalrenotech.ca</a>
+        <a href="#" data-glink="write" target="_blank" rel="noopener">★ Leave a Google Review</a>
+      </div>
+      <div class="footer-meta">
+        <p>RBQ 5721-3423-01 · Since 2002</p>
+        <p>Montréal — West · South · North · East</p>
+        <p>© <span id="year"></span> Total Réno-Tech Inc.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== Dynamic modal (quote / comment / specification / emergency) ===== -->
   <div class="modal-wrap" id="leadModal" aria-hidden="true">
     <div class="modal-backdrop" data-close></div>
     <form class="modal" id="leadForm" novalidate>
       <button type="button" class="modal-x" data-close aria-label="Close">×</button>
-      <img class="modal-logo" src="assets/logo.png" alt="Total" />
-      <h3 id="modalTitle">Request your free quote</h3>
+      <img class="modal-logo" src="assets/logo.png" alt="Total Réno-Tech" />
+      <h3 id="modalTitle">Request your free estimate</h3>
       <p class="modal-sub" id="modalSub">We keep your details private and reach out shortly.</p>
       <div id="modalFields"></div>
       <p class="form-msg" id="formMsg" role="status"></p>
-      <button type="submit" class="submit-btn" id="submitBtn"><span>Launch my request 🚀</span></button>
+      <button type="submit" class="btn btn-primary btn-block" id="submitBtn"><span>Send my request</span></button>
     </form>
   </div>
 
-  <!-- ===== Warp overlay ===== -->
-  <div class="warp" id="warp" aria-hidden="true">
-    <canvas id="warpCanvas"></canvas>
-    <div class="warp-label" id="warpLabel">Entering hyperspace…</div>
-  </div>
+  <!-- Floating Google review widget (built by JS) -->
+  <div id="gWidget"></div>
 
-  <script src="main.js"></script>
+  <script src="main.js" defer></script>
 </body>
 </html>

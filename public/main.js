@@ -1,219 +1,43 @@
 /* ===================================================================
-   Total — Plomberie & Construction — galaxy interactions
+   Total Réno-Tech — premium site interactions
+   Lightweight vanilla JS: forms, reviews, reveal. No dependencies.
    =================================================================== */
 (function () {
   'use strict';
-
-  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   var yearEl = document.getElementById('year');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   /* ================================================================
-     1. STARFIELD — layered depth for a 3D, in-motion galaxy
+     1. Sticky header state
      ================================================================ */
-  var canvas = document.getElementById('space');
-  var ctx = canvas.getContext('2d');
-  var stars = [];
-  var shooting = [];
-  var W = 0, H = 0, DPR = Math.min(window.devicePixelRatio || 1, 2);
-  var pointer = { x: 0, y: 0 };
-
-  function resize() {
-    W = window.innerWidth;
-    H = window.innerHeight;
-    canvas.width = W * DPR;
-    canvas.height = H * DPR;
-    canvas.style.width = W + 'px';
-    canvas.style.height = H + 'px';
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    buildStars();
-  }
-
-  function buildStars() {
-    stars = [];
-    var count = Math.min(260, Math.floor((W * H) / 6500));
-    for (var i = 0; i < count; i++) {
-      var depth = Math.random();
-      stars.push({
-        x: Math.random() * W,
-        y: Math.random() * H,
-        z: depth,
-        r: 0.4 + depth * 1.8,
-        tw: Math.random() * Math.PI * 2,
-        hue: Math.random() < 0.5 ? '#bcd4ff' : (Math.random() < 0.5 ? '#9ad7ff' : '#fff6d6')
-      });
-    }
-  }
-
-  function spawnShooting() {
-    if (reduceMotion) return;
-    shooting.push({
-      x: Math.random() * W * 0.7,
-      y: Math.random() * H * 0.4,
-      len: 120 + Math.random() * 160,
-      sp: 7 + Math.random() * 6,
-      life: 1
-    });
-  }
-
-  var scrollY = 0, lastScroll = 0;
-
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-    var px = (pointer.x - W / 2) * 0.012;
-    var py = (pointer.y - H / 2) * 0.012;
-    var sShift = (scrollY - lastScroll);
-    lastScroll += sShift * 0.08;
-
-    for (var i = 0; i < stars.length; i++) {
-      var s = stars[i];
-      s.x += (0.04 + s.z * 0.10) * (reduceMotion ? 0 : 1);
-      if (s.x > W + 4) s.x = -4;
-      var ox = px * (s.z * 2.4 + 0.4);
-      var oy = py * (s.z * 2.4 + 0.4) - lastScroll * (s.z * 0.6 + 0.1) * 0.04;
-      var yy = ((s.y + oy) % H + H) % H;
-      s.tw += 0.02 + s.z * 0.03;
-      var a = 0.4 + Math.sin(s.tw) * 0.35 + s.z * 0.25;
-      ctx.beginPath();
-      ctx.globalAlpha = Math.max(0.05, Math.min(1, a));
-      ctx.fillStyle = s.hue;
-      ctx.arc(s.x + ox, yy, s.r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-
-    for (var j = shooting.length - 1; j >= 0; j--) {
-      var sh = shooting[j];
-      sh.x += sh.sp; sh.y += sh.sp * 0.5; sh.life -= 0.012;
-      if (sh.life <= 0) { shooting.splice(j, 1); continue; }
-      var grad = ctx.createLinearGradient(sh.x, sh.y, sh.x - sh.len, sh.y - sh.len * 0.5);
-      grad.addColorStop(0, 'rgba(255,255,255,' + sh.life + ')');
-      grad.addColorStop(1, 'rgba(67,231,255,0)');
-      ctx.strokeStyle = grad;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(sh.x, sh.y);
-      ctx.lineTo(sh.x - sh.len, sh.y - sh.len * 0.5);
-      ctx.stroke();
-    }
-    requestAnimationFrame(draw);
-  }
-
-  window.addEventListener('resize', resize, { passive: true });
-  window.addEventListener('pointermove', function (e) { pointer.x = e.clientX; pointer.y = e.clientY; }, { passive: true });
-  resize();
-  draw();
-  setInterval(function () { if (Math.random() < 0.5) spawnShooting(); }, 2600);
-
-  /* ================================================================
-     2. WINDING ROAD — comet travels along path with scroll
-     ================================================================ */
-  var roadProgress = document.getElementById('roadProgress');
-  var comet = document.getElementById('comet');
-  var progressPct = document.getElementById('progressPct');
-  var pathLen = roadProgress.getTotalLength();
-  roadProgress.style.strokeDasharray = pathLen;
-  roadProgress.style.strokeDashoffset = pathLen;
-
+  var header = document.getElementById('siteHeader');
   function onScroll() {
-    scrollY = window.scrollY || window.pageYOffset;
-    var max = document.body.scrollHeight - window.innerHeight;
-    var pct = max > 0 ? Math.min(1, Math.max(0, scrollY / max)) : 0;
-    roadProgress.style.strokeDashoffset = pathLen * (1 - pct);
-    var pt = roadProgress.getPointAtLength(pathLen * pct);
-    comet.setAttribute('transform', 'translate(' + pt.x + ',' + pt.y + ')');
-    if (progressPct) progressPct.textContent = Math.round(pct * 100);
+    if (header) header.classList.toggle('scrolled', window.scrollY > 8);
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
   /* ================================================================
-     3. REVEAL panels on scroll
+     2. Reveal on scroll
      ================================================================ */
   var io = new IntersectionObserver(function (entries) {
-    entries.forEach(function (en) { if (en.isIntersecting) en.target.classList.add('in'); });
-  }, { threshold: 0.18 });
-  document.querySelectorAll('.panel').forEach(function (p) { io.observe(p); });
-
-  /* ================================================================
-     4. 3D tilt on planets
-     ================================================================ */
-  if (!reduceMotion && window.matchMedia('(pointer:fine)').matches) {
-    document.querySelectorAll('.planet').forEach(function (card) {
-      card.addEventListener('pointermove', function (e) {
-        var r = card.getBoundingClientRect();
-        var rx = ((e.clientY - r.top) / r.height - 0.5) * -8;
-        var ry = ((e.clientX - r.left) / r.width - 0.5) * 10;
-        card.style.transform = 'translateY(-8px) rotateX(' + rx + 'deg) rotateY(' + ry + 'deg)';
-      });
-      card.addEventListener('pointerleave', function () { card.style.transform = ''; });
+    entries.forEach(function (en) {
+      if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
     });
-  }
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
 
   /* ================================================================
-     5. WARP transition to external sites
-     ================================================================ */
-  var warp = document.getElementById('warp');
-  var warpCanvas = document.getElementById('warpCanvas');
-  var warpLabel = document.getElementById('warpLabel');
-  var wctx = warpCanvas.getContext('2d');
-  var warpStars = [];
-
-  function startWarp(url, label) {
-    warpLabel.textContent = label || 'Entering hyperspace…';
-    warp.classList.add('on');
-    warpCanvas.width = window.innerWidth;
-    warpCanvas.height = window.innerHeight;
-    var cx = warpCanvas.width / 2, cy = warpCanvas.height / 2;
-    warpStars = [];
-    for (var i = 0; i < 320; i++) {
-      warpStars.push({ a: Math.random() * Math.PI * 2, r: Math.random() * 30, sp: 2 + Math.random() * 8, len: 0 });
-    }
-    var t0 = performance.now();
-    function step(now) {
-      var k = (now - t0) / 1000;
-      wctx.fillStyle = 'rgba(2,3,10,0.35)';
-      wctx.fillRect(0, 0, warpCanvas.width, warpCanvas.height);
-      for (var i = 0; i < warpStars.length; i++) {
-        var s = warpStars[i];
-        s.r += s.sp * (1 + k * 3);
-        s.len = s.sp * (2 + k * 6);
-        var x1 = cx + Math.cos(s.a) * s.r, y1 = cy + Math.sin(s.a) * s.r;
-        var x2 = cx + Math.cos(s.a) * (s.r - s.len), y2 = cy + Math.sin(s.a) * (s.r - s.len);
-        var hue = i % 3 === 0 ? '124,92,255' : (i % 3 === 1 ? '67,231,255' : '255,206,92');
-        wctx.strokeStyle = 'rgba(' + hue + ',0.9)';
-        wctx.lineWidth = 1.6;
-        wctx.beginPath();
-        wctx.moveTo(x1, y1);
-        wctx.lineTo(x2, y2);
-        wctx.stroke();
-        if (s.r > Math.max(warpCanvas.width, warpCanvas.height)) s.r = 0;
-      }
-      requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-    setTimeout(function () { window.location.href = url; }, reduceMotion ? 150 : 1050);
-  }
-
-  document.querySelectorAll('[data-url]').forEach(function (el) {
-    el.addEventListener('click', function (e) {
-      e.preventDefault();
-      var url = el.getAttribute('data-url');
-      var title = el.querySelector('h3') || el.querySelector('b');
-      startWarp(url, title ? 'Travelling to ' + title.textContent + '…' : 'Entering hyperspace…');
-    });
-  });
-
-  /* ================================================================
-     6. DYNAMIC MODAL — quote / comment / specification -> Excel
+     3. Modal forms — quote / comment / specification / emergency
+        (same backend endpoints as before)
      ================================================================ */
   var FORMS = {
     quote: {
       endpoint: '/api/lead',
-      title: 'Request your free quote',
+      title: 'Request your free estimate',
       sub: 'We keep your details private and reach out shortly.',
-      submit: 'Launch my request 🚀',
+      submit: 'Send my request',
       fields: [
         { name: 'firstName', label: 'First name', type: 'text', auto: 'given-name', half: true },
         { name: 'lastName', label: 'Last name', type: 'text', auto: 'family-name', half: true },
@@ -226,7 +50,7 @@
       endpoint: '/api/comment',
       title: 'Comments for us',
       sub: 'Tell us how we did — we read every message.',
-      submit: 'Send comment 🚀',
+      submit: 'Send comment',
       fields: [
         { name: 'name', label: 'Name', type: 'text', auto: 'name' },
         { name: 'email', label: 'Email', type: 'email', auto: 'email' },
@@ -235,15 +59,29 @@
     },
     specification: {
       endpoint: '/api/specification',
-      title: 'Client specifications',
+      title: 'Project specifications',
       sub: 'Share your project details and we will prepare a tailored plan.',
-      submit: 'Send specifications 🚀',
+      submit: 'Send specifications',
       fields: [
         { name: 'name', label: 'Name', type: 'text', auto: 'name' },
         { name: 'email', label: 'Email', type: 'email', auto: 'email' },
         { name: 'phone', label: 'Phone', type: 'tel', auto: 'tel' },
         { name: 'projectType', label: 'Project type', type: 'text', placeholder: 'Kitchen, bathroom, plumbing…', optional: true },
         { name: 'details', label: 'Project details', type: 'textarea' }
+      ]
+    },
+    emergency: {
+      endpoint: '/api/specification',
+      title: '🚨 Request emergency service',
+      sub: 'Flood or water damage? Send your details — we respond fast, 24/7.',
+      submit: 'Request emergency service',
+      prefill: { projectType: 'EMERGENCY — Flood / Water damage' },
+      fields: [
+        { name: 'name', label: 'Name', type: 'text', auto: 'name' },
+        { name: 'email', label: 'Email', type: 'email', auto: 'email' },
+        { name: 'phone', label: 'Phone', type: 'tel', auto: 'tel' },
+        { name: 'projectType', label: 'Emergency type', type: 'text' },
+        { name: 'details', label: 'What happened? (address + situation)', type: 'textarea' }
       ]
     }
   };
@@ -257,7 +95,11 @@
   var submitBtn = document.getElementById('submitBtn');
   var current = FORMS.quote;
 
-  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
 
   function fieldHTML(f) {
     var control = f.type === 'textarea'
@@ -277,9 +119,19 @@
         html += fieldHTML(f);
       }
     }
-    // Honeypot: invisible to real users, bots fill it and get silently discarded server-side.
+    // Honeypot: hidden "website" field — bots fill it, real users never see it.
     html += '<input name="website" type="text" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;" />';
     fieldsBox.innerHTML = html;
+    if (def.prefill) {
+      Object.keys(def.prefill).forEach(function (k) {
+        if (form[k]) form[k].value = def.prefill[k];
+      });
+    }
+  }
+
+  function setMsg(text, kind) {
+    formMsg.textContent = text;
+    formMsg.className = 'form-msg' + (kind ? ' ' + kind : '');
   }
 
   function openModal(type) {
@@ -305,11 +157,6 @@
   modal.querySelectorAll('[data-close]').forEach(function (el) { el.addEventListener('click', closeModal); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
 
-  function setMsg(text, kind) {
-    formMsg.textContent = text;
-    formMsg.className = 'form-msg' + (kind ? ' ' + kind : '');
-  }
-
   function validate(def) {
     var data = {}, bad = [];
     def.fields.forEach(function (f) {
@@ -317,8 +164,8 @@
       var val = (input.value || '').trim();
       data[f.name] = val;
       var ok = f.optional ? true : !!val;
-      if (ok && f.type === 'email') ok = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val);
-      if (ok && f.type === 'tel') ok = val.replace(/[^0-9]/g, '').length >= 6;
+      if (ok && val && f.type === 'email') ok = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val);
+      if (ok && val && f.type === 'tel') ok = val.replace(/[^0-9]/g, '').length >= 6;
       input.classList.toggle('invalid', !ok);
       if (!ok) bad.push(f.name);
     });
@@ -333,10 +180,12 @@
 
     submitBtn.disabled = true;
     var label = submitBtn.querySelector('span').textContent;
-    submitBtn.querySelector('span').textContent = 'Launching…';
+    submitBtn.querySelector('span').textContent = 'Sending…';
 
+    // Include the honeypot value so the server can reject bot submissions.
     var hp = form['website'];
     var payload = Object.assign({}, v.data, { website: hp ? hp.value : '' });
+
     fetch(current.endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -345,17 +194,135 @@
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (res) {
         if (res.ok && res.j.ok) {
-          setMsg('🚀 Received! Our team will be in touch shortly.', 'ok');
+          setMsg('✔ Received! Our team will be in touch shortly.', 'ok');
           form.reset();
           setTimeout(closeModal, 1800);
         } else {
-          setMsg('Something went wrong. Please call us at +1 (514) 581-3015.', 'err');
+          setMsg('Something went wrong. Please call us at (514) 581-3015.', 'err');
         }
       })
-      .catch(function () { setMsg('Network error — please call us at +1 (514) 581-3015.', 'err'); })
+      .catch(function () { setMsg('Network error — please call us at (514) 581-3015.', 'err'); })
       .finally(function () {
         submitBtn.disabled = false;
         submitBtn.querySelector('span').textContent = label;
       });
   });
+
+  /* ================================================================
+     4. Google Reviews — live data with graceful fallback
+     ================================================================ */
+  var FALLBACK_URL = 'https://www.google.com/search?q=Total+R%C3%A9no-Tech+Inc.+reviews';
+  var gdata = { rating: 5.0, count: null, url: FALLBACK_URL, writeUrl: FALLBACK_URL, reviews: [], live: false };
+
+  function applyGoogleLinks() {
+    document.querySelectorAll('[data-glink]').forEach(function (a) {
+      a.href = a.getAttribute('data-glink') === 'write' ? gdata.writeUrl : gdata.url;
+    });
+  }
+
+  function starsFor(n) {
+    var full = Math.round(n || 5);
+    return '★★★★★'.slice(0, Math.max(0, Math.min(5, full)));
+  }
+
+  function renderReviews() {
+    // Hero card
+    var gRating = document.getElementById('gRating');
+    var gCount = document.getElementById('gCount');
+    if (gRating && gdata.rating) gRating.textContent = Number(gdata.rating).toFixed(1);
+    if (gCount) {
+      gCount.textContent = gdata.count
+        ? Number(gdata.rating).toFixed(1) + ' from ' + gdata.count + ' Google reviews'
+        : 'Rated ' + Number(gdata.rating).toFixed(1) + ' by our clients on Google';
+    }
+    // Reviews section cards (only real reviews — never fabricated)
+    var grid = document.getElementById('reviewsGrid');
+    if (grid && gdata.reviews.length) {
+      grid.hidden = false;
+      grid.innerHTML = gdata.reviews.slice(0, 3).map(function (r) {
+        return '<article class="rev-card reveal in">' +
+          '<span class="stars">' + starsFor(r.rating) + '</span>' +
+          '<p>“' + esc(r.text || '') + '”</p>' +
+          '<div class="rev-name">' + esc(r.name || 'Google user') + (r.when ? ' · ' + esc(r.when) : '') + '</div>' +
+          '</article>';
+      }).join('');
+    }
+    var sub = document.getElementById('reviewsSub');
+    if (sub && gdata.count) sub.textContent = gdata.count + ' verified Google reviews and counting — built one project at a time since 2002.';
+    applyGoogleLinks();
+    buildWidget();
+  }
+
+  /* ================================================================
+     5. Floating Google review widget
+     ================================================================ */
+  function buildWidget() {
+    var mount = document.getElementById('gWidget');
+    if (!mount || mount.childNodes.length) return;
+    try { if (sessionStorage.getItem('trt-gw-dismissed')) return; } catch (e) {}
+
+    var gw = document.createElement('div');
+    gw.className = 'gw';
+    gw.innerHTML =
+      '<div class="gw-card" role="dialog" aria-label="Google reviews">' +
+        '<button class="gw-x" aria-label="Dismiss">×</button>' +
+        '<span class="glogo"><b class="g1">G</b><b class="g2">o</b><b class="g3">o</b><b class="g1">g</b><b class="g4">l</b><b class="g2">e</b></span>' +
+        '<div class="gw-review" id="gwReview">' +
+          '<span class="stars">★★★★★</span>' +
+          '<p>' + (gdata.count ? esc(Number(gdata.rating).toFixed(1) + ' from ' + gdata.count + ' reviews on Google.') : 'Rated 5.0 by our clients on Google.') + '</p>' +
+        '</div>' +
+        '<div class="gw-actions">' +
+          '<a class="btn btn-primary" href="' + esc(gdata.url) + '" target="_blank" rel="noopener">Read on Google</a>' +
+          '<a class="btn btn-goldline" href="' + esc(gdata.writeUrl) + '" target="_blank" rel="noopener">★ Leave a Review</a>' +
+        '</div>' +
+      '</div>' +
+      '<button class="gw-pill" aria-expanded="false">' +
+        '<span class="stars">★★★★★</span> ' + Number(gdata.rating).toFixed(1) + ' on Google' +
+      '</button>';
+    mount.appendChild(gw);
+
+    var pill = gw.querySelector('.gw-pill');
+    pill.addEventListener('click', function () {
+      var open = gw.classList.toggle('open');
+      pill.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    gw.querySelector('.gw-x').addEventListener('click', function () {
+      gw.remove();
+      try { sessionStorage.setItem('trt-gw-dismissed', '1'); } catch (e) {}
+    });
+
+    // Rotate real reviews when available
+    if (gdata.reviews.length) {
+      var box = gw.querySelector('#gwReview');
+      var i = Math.floor(Math.random() * gdata.reviews.length);
+      var show = function (idx) {
+        var r = gdata.reviews[idx];
+        box.innerHTML =
+          '<span class="stars">' + starsFor(r.rating) + '</span>' +
+          '<p>“' + esc((r.text || '').slice(0, 150)) + '”</p>' +
+          '<div class="rev-name">' + esc(r.name || 'Google user') + '</div>';
+      };
+      show(i);
+      setInterval(function () { i = (i + 1) % gdata.reviews.length; show(i); }, 6000);
+    }
+  }
+
+  applyGoogleLinks(); // safe defaults immediately
+
+  fetch('/api/reviews')
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      if (d && d.rating) {
+        gdata = {
+          rating: d.rating,
+          count: d.count || null,
+          url: d.url || FALLBACK_URL,
+          writeUrl: d.writeUrl || d.url || FALLBACK_URL,
+          reviews: Array.isArray(d.reviews) ? d.reviews.filter(function (r) { return r && r.text; }) : [],
+          live: !!d.live
+        };
+      }
+      renderReviews();
+    })
+    .catch(function () { renderReviews(); });
 })();
