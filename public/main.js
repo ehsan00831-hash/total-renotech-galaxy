@@ -235,22 +235,89 @@
         ? Number(gdata.rating).toFixed(1) + ' from ' + gdata.count + ' Google reviews'
         : 'Rated ' + Number(gdata.rating).toFixed(1) + ' by our clients on Google';
     }
-    // Reviews section cards (only real reviews — never fabricated)
-    var grid = document.getElementById('reviewsGrid');
-    if (grid && gdata.reviews.length) {
-      grid.hidden = false;
-      grid.innerHTML = gdata.reviews.slice(0, 3).map(function (r) {
-        return '<article class="rev-card reveal in">' +
-          '<span class="stars">' + starsFor(r.rating) + '</span>' +
-          '<p>“' + esc(r.text || '') + '”</p>' +
-          '<div class="rev-name">' + esc(r.name || 'Google user') + (r.when ? ' · ' + esc(r.when) : '') + '</div>' +
-          '</article>';
-      }).join('');
-    }
     var sub = document.getElementById('reviewsSub');
     if (sub && gdata.count) sub.textContent = gdata.count + ' verified Google reviews and counting — built one project at a time since 2002.';
     applyGoogleLinks();
+    buildReviewSlider();
     buildWidget();
+  }
+
+  /* ================================================================
+     4b. Google Reviews slider — one review at a time, same gdata source.
+         Auto-rotates, supports manual prev/next + dots, pauses on
+         hover/focus. Never invents reviews: shows a safe fallback slide
+         (Read/Leave buttons only) when no real reviews are available.
+     ================================================================ */
+  function buildReviewSlider() {
+    var slider = document.getElementById('revSlider');
+    var track = document.getElementById('revTrack');
+    var dotsBox = document.getElementById('revDots');
+    var prevBtn = document.getElementById('revPrev');
+    var nextBtn = document.getElementById('revNext');
+    if (!slider || !track || !dotsBox) return;
+
+    var reviews = gdata.reviews.slice(0, 8);
+    var slideHTML;
+
+    if (reviews.length) {
+      slideHTML = reviews.map(function (r) {
+        return '<div class="rev-slide" role="group" aria-roledescription="slide">' +
+          '<span class="stars">' + starsFor(r.rating) + '</span>' +
+          '<p class="rev-text">“' + esc(r.text || '') + '”</p>' +
+          '<div class="rev-meta"><div class="rev-name">' + esc(r.name || 'Google user') + '</div>' +
+          (r.when ? '<div class="rev-date">' + esc(r.when) + '</div>' : '') + '</div>' +
+          '<div class="rev-slide-actions">' +
+            '<a class="btn btn-primary btn-sm" href="' + esc(gdata.url) + '" target="_blank" rel="noopener">Read Google Reviews</a>' +
+            '<a class="btn btn-goldline btn-sm" href="' + esc(gdata.writeUrl) + '" target="_blank" rel="noopener">★ Leave a Google Review</a>' +
+          '</div></div>';
+      }).join('');
+    } else {
+      // Safe fallback — no fabricated review text/count, just the trust badge + CTAs.
+      reviews = [{}]; // one fallback "slide"
+      slideHTML = '<div class="rev-slide rev-fallback" role="group" aria-roledescription="slide">' +
+        '<span class="stars">' + starsFor(gdata.rating) + '</span>' +
+        '<p class="rev-text">Rated ' + Number(gdata.rating).toFixed(1) + ' by our clients on Google. Be one of the first to share your experience.</p>' +
+        '<div class="rev-slide-actions">' +
+          '<a class="btn btn-primary btn-sm" href="' + esc(gdata.url) + '" target="_blank" rel="noopener">Read Google Reviews</a>' +
+          '<a class="btn btn-goldline btn-sm" href="' + esc(gdata.writeUrl) + '" target="_blank" rel="noopener">★ Leave a Google Review</a>' +
+        '</div></div>';
+    }
+
+    track.innerHTML = slideHTML;
+    slider.setAttribute('data-count', String(reviews.length));
+    dotsBox.innerHTML = reviews.length > 1
+      ? reviews.map(function (_r, i) { return '<button type="button" class="rev-dot' + (i === 0 ? ' active' : '') + '" aria-label="Go to review ' + (i + 1) + '"></button>'; }).join('')
+      : '';
+    dotsBox.hidden = reviews.length <= 1;
+
+    var dots = dotsBox.querySelectorAll('.rev-dot');
+    var idx = 0;
+    var timer = null;
+
+    function goTo(i) {
+      idx = (i + reviews.length) % reviews.length;
+      track.style.transform = 'translateX(-' + (idx * 100) + '%)';
+      dots.forEach(function (d, di) { d.classList.toggle('active', di === idx); });
+    }
+    function next() { goTo(idx + 1); }
+    function prev() { goTo(idx - 1); }
+    function startAuto() {
+      if (reviews.length <= 1) return;
+      stopAuto();
+      timer = setInterval(next, 6000);
+    }
+    function stopAuto() { if (timer) { clearInterval(timer); timer = null; } }
+
+    prevBtn.addEventListener('click', function () { prev(); startAuto(); });
+    nextBtn.addEventListener('click', function () { next(); startAuto(); });
+    dots.forEach(function (d, i) { d.addEventListener('click', function () { goTo(i); startAuto(); }); });
+    slider.addEventListener('mouseenter', stopAuto);
+    slider.addEventListener('mouseleave', startAuto);
+    slider.addEventListener('focusin', stopAuto);
+    slider.addEventListener('focusout', startAuto);
+
+    goTo(0);
+    startAuto();
   }
 
   /* ================================================================

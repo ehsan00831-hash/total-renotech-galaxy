@@ -8,6 +8,11 @@
   --blue:       #1657d0;
   --blue-deep:  #0b2a5b;
   --blue-soft:  #eaf1ff;
+  /* Sampled directly from the team-uniform polos in assets/team.jpg —
+     used consistently anywhere the header needs a "team blue" accent. */
+  --team-blue:      #4f86d6;
+  --team-blue-soft: #dce9fb;
+  --team-blue-tint: #eef5fe;
   --gold:       #c9a227;
   --gold-soft:  #f7ecc9;
   --surface:    #ffffff;
@@ -78,13 +83,18 @@ img { max-width: 100%; display: block; }
   justify-content: space-between;
   gap: 16px;
   padding: 12px clamp(18px, 3.5vw, 36px);
-  background: rgba(255, 255, 255, 0.82);
+  /* Soft white -> team-blue gradient (matches the crew's uniform blue, not navy). */
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.86) 45%, var(--team-blue-tint) 100%);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid transparent;
-  transition: border-color .25s, box-shadow .25s;
+  transition: border-color .25s, box-shadow .25s, background .25s;
 }
-.site-header.scrolled { border-color: var(--line); box-shadow: 0 8px 30px rgba(14, 50, 120, .07); }
+.site-header.scrolled {
+  border-color: var(--team-blue-soft);
+  box-shadow: 0 8px 30px rgba(79, 134, 214, .14);
+  background: linear-gradient(120deg, #ffffff 0%, var(--team-blue-tint) 55%, var(--team-blue-soft) 100%);
+}
 .brand-logo { height: 44px; width: auto; filter: drop-shadow(0 1px 3px rgba(0,0,0,.35)); }
 .nav { display: flex; gap: clamp(14px, 2vw, 26px); }
 .nav a {
@@ -268,20 +278,63 @@ img { max-width: 100%; display: block; }
   box-shadow: var(--shadow);
 }
 
-/* ---------- Reviews ---------- */
+/* ---------- Reviews slider ---------- */
 .reviews-section { background: linear-gradient(180deg, #f6f9ff, #ffffff); }
 .reviews-section .section-head { text-align: center; margin-left: auto; margin-right: auto; }
-.reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 32px; }
-.rev-card {
-  background: #fff;
+
+.rev-slider {
+  position: relative;
+  max-width: 680px;
+  margin: 0 auto 16px;
+  overflow: hidden;
+  border-radius: 20px;
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 22px;
-  box-shadow: var(--shadow-sm);
+  background: #fff;
+  box-shadow: var(--shadow);
 }
-.rev-card .stars { font-size: 16px; letter-spacing: 2px; }
-.rev-card p { margin-top: 10px; font-size: 14px; color: var(--ink); }
-.rev-card .rev-name { margin-top: 12px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.rev-slider-track { display: flex; transition: transform .5s cubic-bezier(.2, .7, .2, 1); }
+.rev-slide { flex: 0 0 100%; min-width: 100%; padding: 40px clamp(24px, 6vw, 64px); text-align: center; }
+.rev-slide .stars { font-size: 19px; letter-spacing: 3px; }
+.rev-slide .rev-text { margin-top: 14px; font-size: 15.5px; line-height: 1.6; color: var(--ink); min-height: 3.2em; }
+.rev-slide .rev-meta { margin-top: 16px; }
+.rev-slide .rev-name { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+.rev-slide .rev-date { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.rev-slide-actions { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+.rev-fallback .rev-text { color: var(--muted); font-style: italic; }
+
+.rev-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background .2s, color .2s, border-color .2s;
+}
+.rev-nav:hover { background: var(--team-blue-tint); color: var(--blue); border-color: var(--team-blue-soft); }
+.rev-prev { left: 10px; }
+.rev-next { right: 10px; }
+.rev-slider[data-count="1"] .rev-nav { display: none; }
+
+.rev-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 32px; }
+.rev-dots[hidden] { display: none; }
+.rev-dot {
+  width: 8px; height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--line);
+  cursor: pointer;
+  transition: width .25s, background .25s;
+}
+.rev-dot.active { width: 22px; background: var(--gold); }
 
 /* ---------- Contact ---------- */
 .contact-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
@@ -426,7 +479,6 @@ a.ccard:hover { transform: translateY(-4px); border-color: var(--blue); }
   .gcard { max-width: 460px; }
   .cards-3 { grid-template-columns: 1fr 1fr; }
   .projects-grid { grid-template-columns: 1fr 1fr; }
-  .reviews-grid { grid-template-columns: 1fr 1fr; }
   .contact-grid { grid-template-columns: 1fr 1fr; }
   .emergency-panel { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
@@ -435,7 +487,6 @@ a.ccard:hover { transform: translateY(-4px); border-color: var(--blue); }
 @media (max-width: 620px) {
   .cards-3 { grid-template-columns: 1fr; }
   .projects-grid { grid-template-columns: 1fr; }
-  .reviews-grid { grid-template-columns: 1fr; }
   .contact-grid { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr; }
   .header-actions .btn-ghost { display: none; }
@@ -443,6 +494,10 @@ a.ccard:hover { transform: translateY(-4px); border-color: var(--blue); }
   .btn { width: 100%; }
   .btn-sm { width: auto; }
   .gw { left: 12px; bottom: 12px; }
+  .rev-slide { padding: 32px 46px; }
+  .rev-nav { width: 30px; height: 30px; font-size: 16px; }
+  .rev-prev { left: 4px; }
+  .rev-next { right: 4px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

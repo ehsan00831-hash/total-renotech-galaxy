@@ -180,11 +180,15 @@
           <h2>Rated <span class="gold-text">★ 5.0</span> by our clients on Google.</h2>
           <p class="section-sub" id="reviewsSub">Since 2002, our reputation has been built one project at a time.</p>
         </div>
-        <div class="reviews-grid" id="reviewsGrid" hidden></div>
-        <div class="cta-row center reveal">
-          <a class="btn btn-primary" href="#" data-glink="read" target="_blank" rel="noopener">Read Google Reviews</a>
-          <a class="btn btn-goldline" href="#" data-glink="write" target="_blank" rel="noopener">★ Leave a Google Review</a>
+        <!-- Google Reviews slider — one review at a time, auto-rotating + manual controls.
+             Populated from the same /api/reviews data source as the hero card and the
+             floating widget. Never shows fabricated reviews; see main.js for fallback. -->
+        <div class="rev-slider reveal" id="revSlider" aria-roledescription="carousel" aria-label="Google reviews">
+          <div class="rev-slider-track" id="revTrack"></div>
+          <button type="button" class="rev-nav rev-prev" id="revPrev" aria-label="Previous review">‹</button>
+          <button type="button" class="rev-nav rev-next" id="revNext" aria-label="Next review">›</button>
         </div>
+        <div class="rev-dots" id="revDots"></div>
       </div>
     </section>
 
