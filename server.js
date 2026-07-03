@@ -187,8 +187,15 @@ app.post('/api/specification', formLimiter, handle(FORMS.specification, (b) => {
 // Priority: live Google Places API -> owner-provided data/reviews.json -> static fallback.
 // Never fabricates live numbers: `live:false` means the frontend shows the
 // owner-claimed 5.0 badge without a review count.
-const PLACES_KEY = (process.env.GOOGLE_PLACES_API_KEY || '').trim();
+// GOOGLE_API_KEY is the primary name; GOOGLE_PLACES_API_KEY is kept as an alias
+// for backward compatibility with earlier deploys.
+const PLACES_KEY = (process.env.GOOGLE_API_KEY || process.env.GOOGLE_PLACES_API_KEY || '').trim();
 const PLACE_ID = (process.env.GOOGLE_PLACE_ID || '').trim();
+// Optional direct link overrides — set these to skip the Places API entirely
+// and just point "Read Reviews" / "Leave a Review" at real Google URLs
+// (e.g. a g.page/r/... short link) while still using the safe rating fallback.
+const REVIEWS_URL_OVERRIDE = (process.env.GOOGLE_REVIEWS_URL || '').trim();
+const LEAVE_URL_OVERRIDE = (process.env.GOOGLE_LEAVE_REVIEW_URL || '').trim();
 const REVIEWS_JSON = path.join(DATA_DIR, 'reviews.json');
 const FALLBACK_REVIEWS_URL = 'https://www.google.com/search?q=Total+R%C3%A9no-Tech+Inc.+reviews';
 
@@ -209,8 +216,8 @@ async function fetchLiveReviews() {
     live: true,
     rating: d.rating || null,
     count: d.userRatingCount || null,
-    url: d.googleMapsUri || FALLBACK_REVIEWS_URL,
-    writeUrl: PLACE_ID ? 'https://search.google.com/local/writereview?placeid=' + encodeURIComponent(PLACE_ID) : FALLBACK_REVIEWS_URL,
+    url: REVIEWS_URL_OVERRIDE || d.googleMapsUri || FALLBACK_REVIEWS_URL,
+    writeUrl: LEAVE_URL_OVERRIDE || (PLACE_ID ? 'https://search.google.com/local/writereview?placeid=' + encodeURIComponent(PLACE_ID) : FALLBACK_REVIEWS_URL),
     reviews: (d.reviews || []).slice(0, 8).map((rv) => ({
       name: (rv.authorAttribution && rv.authorAttribution.displayName) || 'Google user',
       rating: rv.rating || 5,
@@ -231,8 +238,8 @@ function readOwnerReviews() {
       source: 'owner-file',
       rating: d.rating || 5.0,
       count: d.count || null,
-      url: d.url || FALLBACK_REVIEWS_URL,
-      writeUrl: d.writeUrl || d.url || FALLBACK_REVIEWS_URL,
+      url: REVIEWS_URL_OVERRIDE || d.url || FALLBACK_REVIEWS_URL,
+      writeUrl: LEAVE_URL_OVERRIDE || d.writeUrl || d.url || FALLBACK_REVIEWS_URL,
       reviews: Array.isArray(d.reviews) ? d.reviews.slice(0, 8) : [],
     };
   } catch (e) {
@@ -260,8 +267,8 @@ app.get('/api/reviews', async (_req, res) => {
       source: 'static',
       rating: 5.0, // owner-claimed (business card: "Google 5.0 Reviews")
       count: null, // unknown — do not fake
-      url: FALLBACK_REVIEWS_URL,
-      writeUrl: FALLBACK_REVIEWS_URL,
+      url: REVIEWS_URL_OVERRIDE || FALLBACK_REVIEWS_URL,
+      writeUrl: LEAVE_URL_OVERRIDE || FALLBACK_REVIEWS_URL,
       reviews: [],
     };
   }
@@ -274,5 +281,9 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.listen(PORT, () => {
   console.log('\n  Total — Plomberie & Construction galaxy is live:  http://localhost:' + PORT);
   console.log('  Form submissions are saved to:  ' + XLSX_PATH);
-  console.log('  Lead emails: ' + (mailer.enabled() ? 'ENABLED -> ' + mailer.LEAD_TO : 'disabled (set MAIL_USER / MAIL_PASS in .env to enable)') + '\n');
+  console.log('  Lead emails: ' + (mailer.enabled() ? 'ENABLED -> ' + mailer.LEAD_TO : 'disabled (set MAIL_USER / MAIL_PASS in .env to enable)'));
+  console.log('  Google reviews: ' + (PLACES_KEY && PLACE_ID
+    ? 'LIVE (Places API)'
+    : 'fallback (set GOOGLE_API_KEY + GOOGLE_PLACE_ID for live data)'
+  ) + (REVIEWS_URL_OVERRIDE || LEAVE_URL_OVERRIDE ? ' + manual URL override(s) active' : '') + '\n');
 });
