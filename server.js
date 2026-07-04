@@ -183,10 +183,107 @@ app.post('/api/specification', formLimiter, handle(FORMS.specification, (b) => {
   return { data };
 }));
 
+// ---- Google Reviews ----
+// Priority: live Google Places API -> owner-provided data/reviews.json -> static fallback.
+// Never fabricates live numbers: `live:false` means the frontend shows the
+// owner-claimed 5.0 badge without a review count.
+// GOOGLE_API_KEY is the primary name; GOOGLE_PLACES_API_KEY is kept as an alias
+// for backward compatibility with earlier deploys.
+const PLACES_KEY = (process.env.GOOGLE_API_KEY || process.env.GOOGLE_PLACES_API_KEY || '').trim();
+const PLACE_ID = (process.env.GOOGLE_PLACE_ID || '').trim();
+// Optional direct link overrides — set these to skip the Places API entirely
+// and just point "Read Reviews" / "Leave a Review" at real Google URLs
+// (e.g. a g.page/r/... short link) while still using the safe rating fallback.
+const REVIEWS_URL_OVERRIDE = (process.env.GOOGLE_REVIEWS_URL || '').trim();
+const LEAVE_URL_OVERRIDE = (process.env.GOOGLE_LEAVE_REVIEW_URL || '').trim();
+const REVIEWS_JSON = path.join(DATA_DIR, 'reviews.json');
+const FALLBACK_REVIEWS_URL = 'https://www.google.com/search?q=Total+R%C3%A9no-Tech+Inc.+reviews';
+
+let reviewsCache = { at: 0, payload: null };
+const REVIEWS_TTL = 10 * 60 * 1000; // 10 min
+
+async function fetchLiveReviews() {
+  const url = 'https://places.googleapis.com/v1/places/' + encodeURIComponent(PLACE_ID);
+  const r = await fetch(url, {
+    headers: {
+      'X-Goog-Api-Key': PLACES_KEY,
+      'X-Goog-FieldMask': 'rating,userRatingCount,googleMapsUri,reviews.rating,reviews.text.text,reviews.authorAttribution.displayName,reviews.relativePublishTimeDescription',
+    },
+  });
+  if (!r.ok) throw new Error('Places API HTTP ' + r.status);
+  const d = await r.json();
+  return {
+    live: true,
+    rating: d.rating || null,
+    count: d.userRatingCount || null,
+    url: REVIEWS_URL_OVERRIDE || d.googleMapsUri || FALLBACK_REVIEWS_URL,
+    writeUrl: LEAVE_URL_OVERRIDE || (PLACE_ID ? 'https://search.google.com/local/writereview?placeid=' + encodeURIComponent(PLACE_ID) : FALLBACK_REVIEWS_URL),
+    reviews: (d.reviews || []).slice(0, 8).map((rv) => ({
+      name: (rv.authorAttribution && rv.authorAttribution.displayName) || 'Google user',
+      rating: rv.rating || 5,
+      text: clean((rv.text && rv.text.text) || '', 220),
+      when: rv.relativePublishTimeDescription || '',
+    })),
+  };
+}
+
+function readOwnerReviews() {
+  // Owner can paste real Google reviews into data/reviews.json:
+  // { "rating": 5.0, "count": 27, "url": "...", "writeUrl": "...", "reviews": [{ "name": "...", "rating": 5, "text": "..." }] }
+  if (!fs.existsSync(REVIEWS_JSON)) return null;
+  try {
+    const d = JSON.parse(fs.readFileSync(REVIEWS_JSON, 'utf8'));
+    return {
+      live: false,
+      source: 'owner-file',
+      rating: d.rating || 5.0,
+      count: d.count || null,
+      url: REVIEWS_URL_OVERRIDE || d.url || FALLBACK_REVIEWS_URL,
+      writeUrl: LEAVE_URL_OVERRIDE || d.writeUrl || d.url || FALLBACK_REVIEWS_URL,
+      reviews: Array.isArray(d.reviews) ? d.reviews.slice(0, 8) : [],
+    };
+  } catch (e) {
+    console.error('Bad data/reviews.json:', e.message);
+    return null;
+  }
+}
+
+app.get('/api/reviews', async (_req, res) => {
+  if (reviewsCache.payload && Date.now() - reviewsCache.at < REVIEWS_TTL) {
+    return res.json(reviewsCache.payload);
+  }
+  let payload = null;
+  if (PLACES_KEY && PLACE_ID) {
+    try {
+      payload = await fetchLiveReviews();
+    } catch (err) {
+      console.error('Live reviews failed, falling back:', err.message);
+    }
+  }
+  if (!payload) payload = readOwnerReviews();
+  if (!payload) {
+    payload = {
+      live: false,
+      source: 'static',
+      rating: 5.0, // owner-claimed (business card: "Google 5.0 Reviews")
+      count: null, // unknown — do not fake
+      url: REVIEWS_URL_OVERRIDE || FALLBACK_REVIEWS_URL,
+      writeUrl: LEAVE_URL_OVERRIDE || FALLBACK_REVIEWS_URL,
+      reviews: [],
+    };
+  }
+  reviewsCache = { at: Date.now(), payload };
+  res.json(payload);
+});
+
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
 app.listen(PORT, () => {
   console.log('\n  Total — Plomberie & Construction galaxy is live:  http://localhost:' + PORT);
   console.log('  Form submissions are saved to:  ' + XLSX_PATH);
-  console.log('  Lead emails: ' + (mailer.enabled() ? 'ENABLED -> ' + mailer.LEAD_TO : 'disabled (set MAIL_USER / MAIL_PASS in .env to enable)') + '\n');
+  console.log('  Lead emails: ' + (mailer.enabled() ? 'ENABLED -> ' + mailer.LEAD_TO : 'disabled (set MAIL_USER / MAIL_PASS in .env to enable)'));
+  console.log('  Google reviews: ' + (PLACES_KEY && PLACE_ID
+    ? 'LIVE (Places API)'
+    : 'fallback (set GOOGLE_API_KEY + GOOGLE_PLACE_ID for live data)'
+  ) + (REVIEWS_URL_OVERRIDE || LEAVE_URL_OVERRIDE ? ' + manual URL override(s) active' : '') + '\n');
 });

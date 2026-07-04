@@ -18,6 +18,20 @@ services:
         sync: false
       - key: LEAD_TO
         sync: false
+      # Optional — enable LIVE Google rating/review count on the site.
+      # Leave blank to use the built-in graceful fallback (never fakes a
+      # live count). GOOGLE_PLACES_API_KEY is accepted as a legacy alias
+      # for GOOGLE_API_KEY.
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GOOGLE_PLACE_ID
+        sync: false
+      # Optional — no API required: point the review buttons at real
+      # Google links (e.g. your g.page/r/... "leave a review" short link).
+      - key: GOOGLE_REVIEWS_URL
+        sync: false
+      - key: GOOGLE_LEAVE_REVIEW_URL
+        sync: false
 
 # -------------------------------------------------------------------
 # OPTIONAL: keep data/customers.xlsx permanently (paid Starter plan, ~$7/mo).
