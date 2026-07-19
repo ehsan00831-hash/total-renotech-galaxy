@@ -136,6 +136,34 @@
     <div class="sw" data-c="#ff9500" style="background:#ff9500"></div>
   </div>
 
+  <label>فونت فارسی — عنوان / متن</label>
+  <div class="row">
+    <select id="iFontTitle">
+      <option>Ordibehesht</option>
+      <option selected>Vazir Black</option>
+      <option>Vazir</option>
+      <option>Vazir Medium</option>
+      <option>Yekan Bakh Fat</option>
+      <option>Yekan Bakh</option>
+      <option>IRANSansX ExtraBold</option>
+      <option>IRANSans Black</option>
+      <option>Sahel Black</option>
+      <option>Shabnam</option>
+    </select>
+    <select id="iFontBody">
+      <option>Ordibehesht</option>
+      <option>Vazir Black</option>
+      <option selected>Vazir</option>
+      <option>Vazir Medium</option>
+      <option>Yekan Bakh Fat</option>
+      <option>Yekan Bakh</option>
+      <option>IRANSansX ExtraBold</option>
+      <option>IRANSans Black</option>
+      <option>Sahel Black</option>
+      <option>Shabnam</option>
+    </select>
+  </div>
+
   <label>عنوان فارسی</label>
   <input type="text" id="iFaTitle" class="rtl" value="کاری را انجام بده که تو را زنده می‌کند">
 
@@ -224,13 +252,20 @@ const $ = id => document.getElementById(id);
 const card = $('card'), note = $('note'), frameG = $('frameG');
 const FIELDS = ['iLaw','iFaTitle','iFaBody','iEnTitle','iEnBody'];
 
-/* ---- prefer a real Persian font if installed ---- */
-(function pickFont(){
-  const cands = ['Vazirmatn','Vazir','IRANSans','IRANSansX','Sahel','Shabnam','Yekan Bakh'];
-  const ok = cands.filter(f => document.fonts && document.fonts.check(`700 30px "${f}"`));
-  const stack = [...ok, 'Segoe UI', 'Tahoma', 'sans-serif'].map(f => `"${f}"`).join(',');
-  card.style.fontFamily = stack;
-})();
+/* ---- Persian fonts ---- */
+function setFont(target, name){
+  const stack = `"${name}", "Vazir", "Segoe UI", Tahoma, sans-serif`;
+  if (target === 'title'){ $('oFaTitle').style.fontFamily = stack; $('oLaw').style.fontFamily = stack; }
+  else { $('oFaBody').style.fontFamily = stack; }
+}
+['iFontTitle','iFontBody'].forEach(id => {
+  $(id).addEventListener('change', () => {
+    const t = id === 'iFontTitle' ? 'title' : 'body';
+    setFont(t, $(id).value);
+    localStorage.setItem('st_' + id, $(id).value);
+    autoFit();
+  });
+});
 
 /* ---- render ---- */
 function render(){
@@ -343,6 +378,10 @@ $('btnClear').onclick = () => { FIELDS.forEach(f => { $(f).value = ''; localStor
     setAccent(acc);
     document.querySelectorAll('.sw').forEach(x => x.classList.toggle('on', x.dataset.c === acc));
   } else setAccent('#1a4dff');
+  ['iFontTitle','iFontBody'].forEach(id => {
+    const v = localStorage.getItem('st_' + id); if (v) $(id).value = v;
+    setFont(id === 'iFontTitle' ? 'title' : 'body', $(id).value);
+  });
   const sg = localStorage.getItem('st_sign'); if (sg) showImg('oSign', sg);
   FIELDS.forEach(f => $(f).addEventListener('input', render));
   window.addEventListener('resize', () => { fitStage(); autoFit(); });
