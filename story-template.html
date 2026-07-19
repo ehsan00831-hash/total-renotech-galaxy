@@ -689,11 +689,35 @@ async function buildExportCanvas(){
     pc.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,.22)';
     pr.x -= SLACK; pr.w += SLACK;
     const PAD = Math.round(70 * K);          // room for the pill's glow/shadow
+    const PW = Math.ceil(pr.w) + 2*PAD, PH = Math.ceil(pr.h) + 2*PAD;
     /* --k lives on #card; the clone renders outside it, so re-declare it or
        every calc(... * var(--k)) in the pill's styles becomes invalid */
-    const pillImg = await rasterize(
-      `<div style="--k:${K};padding:${PAD}px;width:${Math.ceil(pr.w) + 2*PAD}px">${serialize(pc)}</div>`,
-      Math.ceil(pr.w) + 2*PAD, Math.ceil(pr.h) + 2*PAD, css);
+    const wrapPill = el =>
+      `<div style="--k:${K};padding:${PAD}px;width:${Math.ceil(pr.w) + 2*PAD}px">${serialize(el)}</div>`;
+    const pillImg = await rasterize(wrapPill(pc), PW, PH, css);
+
+    /* A silhouette of the same clone - solid fill, contents hidden - masks the
+       pill's baked backdrop. Clipping to a hand-computed rounded rect instead
+       left the blurred patch visible around the pill's corners and edges;
+       masking with the shape the pill actually paints cannot drift. */
+    const ps = pc.cloneNode(true);
+    ps.style.background = '#000';
+    ps.style.borderColor = '#000';
+    ps.style.boxShadow = 'none';
+    [...ps.children].forEach(c => c.style.visibility = 'hidden');
+    const pillMask = await rasterize(wrapPill(ps), PW, PH, css);
+
+    /* backdrop + artwork, composited in the pill's own space */
+    const pillLayer = document.createElement('canvas');
+    pillLayer.width = PW; pillLayer.height = PH;
+    const pg = pillLayer.getContext('2d');
+    pg.filter = `blur(${Math.round(55*K)}px)`;
+    pg.drawImage(bgc, -(pr.x - PAD), -(pr.y - PAD));
+    pg.filter = 'none';
+    pg.globalCompositeOperation = 'destination-in';
+    pg.drawImage(pillMask, 0, 0);
+    pg.globalCompositeOperation = 'source-over';
+    pg.drawImage(pillImg, 0, 0);
 
     /* the card's own background and the live canvas must not paint over the
        galaxy + baked blur drawn underneath */
@@ -709,16 +733,14 @@ async function buildExportCanvas(){
     cv.width = W; cv.height = H;
     const x = cv.getContext('2d');
     x.drawImage(bgc, 0, 0);
-    for (const r of [{...nr, rad:34*K}, {...pr, rad:18*K}]){
-      x.save();
-      x.beginPath(); x.roundRect(r.x, r.y, r.w, r.h, r.rad); x.clip();
-      x.filter = `blur(${Math.round(55*K)}px)`;
-      x.drawImage(bgc, 0, 0);
-      x.restore();
-    }
+    x.save();
+    x.beginPath(); x.roundRect(nr.x, nr.y, nr.w, nr.h, 34*K); x.clip();
+    x.filter = `blur(${Math.round(55*K)}px)`;
+    x.drawImage(bgc, 0, 0);
+    x.restore();
     x.filter = 'none';
     x.drawImage(img, 0, 0);
-    x.drawImage(pillImg, pr.x - PAD, pr.y - PAD);
+    x.drawImage(pillLayer, pr.x - PAD, pr.y - PAD);
     return cv;
   } finally {
     $('scaler').style.transform = prevT;
