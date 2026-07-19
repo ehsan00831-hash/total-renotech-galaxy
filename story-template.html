@@ -30,7 +30,7 @@
   button.sec { background: #262b33; color: #cfd4dd; margin-top: 8px; }
   .hint { font-size: 11px; color: #6d7480; margin-top: 10px; line-height: 1.6; }
   .swatches { display: flex; gap: 6px; margin-top: 6px; }
-  .sw { width: 30px; height: 26px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; }
+  .sw { flex: 1; height: 28px; border-radius: 7px; cursor: pointer; border: 2px solid transparent; }
   .sw.on { border-color: #fff; }
 
   /* ---------- preview scaling ---------- */
@@ -40,18 +40,10 @@
   /* ---------- THE STORY CANVAS (1080 x 1920) ---------- */
   #card {
     width: 1080px; height: 1920px; position: relative; overflow: hidden;
-    background: #000308;
+    background: #020309;
     font-family: "Segoe UI", Tahoma, sans-serif;
-    --accent: #1a4dff;
-    --gold: #e9c264;
   }
-  #card .bg {
-    position: absolute; inset: 0;
-    background:
-      radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--accent) 26%, transparent) 0%, transparent 55%),
-      radial-gradient(120% 60% at 50% 100%, color-mix(in srgb, var(--accent) 22%, transparent) 0%, transparent 55%),
-      #000308;
-  }
+  #bgc { position: absolute; inset: 0; }
   #card svg.frame { position: absolute; inset: 0; width: 1080px; height: 1920px; }
 
   /* centered stack: pill + note */
@@ -60,56 +52,88 @@
     display: flex; flex-direction: column; justify-content: center;
   }
 
-  /* law pill */
+  /* ---------- glass law pill ---------- */
   .pill {
-    align-self: flex-end; margin: 0 36px 14px 0;
+    align-self: flex-end; margin: 0 36px 16px 0;
     display: flex; align-items: center; gap: 22px;
-    padding: 12px 30px 16px; border: 2px solid var(--gold); border-radius: 14px;
-    background: rgba(8,10,14,.85);
+    padding: 14px 34px 18px; border-radius: 18px;
+    border: 1px solid transparent;
+    background:
+      linear-gradient(rgba(14,18,34,.42), rgba(14,18,34,.42)) padding-box,
+      linear-gradient(150deg, rgba(255,224,138,.85), rgba(255,224,138,.14) 45%, rgba(255,255,255,.06) 70%, rgba(255,224,138,.5)) border-box;
+    -webkit-backdrop-filter: blur(42px) saturate(160%);
+    backdrop-filter: blur(42px) saturate(160%);
+    box-shadow: 0 18px 44px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.22);
   }
   .pill span {
-    font-size: 46px; font-weight: 800; color: var(--gold);
-    border-bottom: 3px solid var(--gold); padding-bottom: 2px; line-height: 1;
+    font-size: 46px; font-weight: 800; color: #ffd76a;
+    border-bottom: 3px solid #ffd76a; padding-bottom: 2px; line-height: 1;
+    text-shadow: 0 0 26px rgba(255,190,80,.45);
   }
-  .pill i { font-style: normal; font-size: 40px; color: var(--gold); }
+  .pill i { font-style: normal; font-size: 40px; color: #ffd76a; }
 
-  /* note card */
+  /* ---------- glass note card ---------- */
   .note {
     margin: 0 36px 0 68px; flex: 0 0 auto;   /* never compress: autoFit needs the true height */
-    border-radius: 30px; overflow: hidden;
-    background: rgba(9,11,15,.92);
-    border: 1px solid rgba(255,255,255,.08);
-    box-shadow: 0 0 60px rgba(0,0,0,.8);
+    position: relative;
+    border-radius: 34px; overflow: hidden;
+    border: 1px solid transparent;
+    background:
+      linear-gradient(rgba(10,14,28,.44), rgba(8,11,22,.5)) padding-box,
+      linear-gradient(165deg, rgba(255,255,255,.55), rgba(255,255,255,.12) 22%, rgba(255,255,255,.04) 55%, rgba(255,255,255,.02) 78%, rgba(255,255,255,.3)) border-box;
+    -webkit-backdrop-filter: blur(46px) saturate(155%);
+    backdrop-filter: blur(46px) saturate(155%);
+    box-shadow: 0 40px 90px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.28);
     display: flex; flex-direction: column;
   }
+  /* refraction highlight sweeping the top edge */
+  .note::before {
+    content: ""; position: absolute; top: 0; left: 8%; right: 30%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent);
+    z-index: 5; pointer-events: none;
+  }
+  .note::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 4;
+    background: linear-gradient(155deg, rgba(255,255,255,.09) 0%, rgba(255,255,255,.02) 18%, transparent 40%);
+  }
   .nbar {
-    display: flex; align-items: center; padding: 22px 34px;
-    background: rgba(20,22,27,.9); border-bottom: 1px solid rgba(255,255,255,.06);
-    color: var(--gold); font-size: 30px; font-weight: 700;
+    display: flex; align-items: center; padding: 24px 34px;
+    background: linear-gradient(rgba(255,255,255,.075), rgba(255,255,255,.035));
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    color: #ffd76a; font-size: 30px; font-weight: 700; letter-spacing: .3px;
   }
   .nbar .sp { flex: 1; }
   .nbar .ic { margin: 0 18px; opacity: .95; }
-  .nbody { padding: 34px 40px 10px; flex: 1; }
+  .nbody { padding: 36px 42px 12px; flex: 1; position: relative; }
 
   .fa-title {
-    direction: rtl; text-align: center; color: var(--gold);
-    font-weight: 800; font-size: 44px; line-height: 1.4; margin-bottom: 22px;
+    direction: rtl; text-align: center; color: #ffd76a;
+    font-weight: 800; font-size: 44px; line-height: 1.4; margin-bottom: 24px;
+    text-shadow: 0 0 30px rgba(255,190,80,.35), 0 2px 10px rgba(0,0,0,.6);
   }
   .fa-body {
     direction: rtl; text-align: justify; color: #fff;
     font-weight: 700; font-size: 33px; line-height: 1.85; white-space: pre-wrap;
+    text-shadow: 0 1px 10px rgba(0,0,0,.65);
   }
   .ph {
-    color: #6b7280; font-size: 30px; margin: 34px 0 6px;
-    border-left: 3px solid var(--gold); padding-left: 12px; line-height: 1.5;
+    color: #8b93a4; font-size: 30px; margin: 34px 0 6px;
+    border-left: 3px solid #ffd76a; padding-left: 12px; line-height: 1.5;
   }
-  .en-title { color: var(--gold); font-weight: 800; font-size: 40px; margin: 8px 0 20px; }
-  .en-body { color: #f2f4f7; font-size: 30px; line-height: 1.55; text-align: justify; white-space: pre-wrap; }
+  .en-title {
+    color: #ffd76a; font-weight: 800; font-size: 40px; margin: 8px 0 20px;
+    text-shadow: 0 0 26px rgba(255,190,80,.3), 0 2px 8px rgba(0,0,0,.55);
+  }
+  .en-body {
+    color: #f2f4fa; font-size: 30px; line-height: 1.55; text-align: justify; white-space: pre-wrap;
+    text-shadow: 0 1px 8px rgba(0,0,0,.6);
+  }
 
   .ntools {
     display: flex; justify-content: space-around; align-items: center;
-    padding: 20px 30px; background: rgba(20,22,27,.9);
-    border-top: 1px solid rgba(255,255,255,.06); margin-top: 26px;
+    padding: 22px 30px;
+    background: linear-gradient(rgba(255,255,255,.035), rgba(255,255,255,.07));
+    border-top: 1px solid rgba(255,255,255,.1); margin-top: 26px;
   }
 
   .glyph { position: absolute; left: 0; right: 0; bottom: 200px; text-align: center; z-index: 3; }
@@ -126,15 +150,16 @@
   <label>شماره قانون (متن پیل)</label>
   <input type="text" id="iLaw" class="rtl" value="قانون یازدهم">
 
-  <label>رنگ نئون</label>
+  <label>تم کهکشان — یا 🎲 برای رندوم کامل</label>
   <div class="swatches" id="sw">
-    <div class="sw on" data-c="#1a4dff" style="background:#1a4dff"></div>
-    <div class="sw" data-c="#19d35c" style="background:#19d35c"></div>
-    <div class="sw" data-c="#ff2b1a" style="background:#ff2b1a"></div>
-    <div class="sw" data-c="#c026d3" style="background:#c026d3"></div>
-    <div class="sw" data-c="#00d6d6" style="background:#00d6d6"></div>
-    <div class="sw" data-c="#ff9500" style="background:#ff9500"></div>
+    <div class="sw on" data-f="blue"   style="background:linear-gradient(135deg,#1b3fa8,#7fd0ff)"></div>
+    <div class="sw" data-f="green"  style="background:linear-gradient(135deg,#0b6b4f,#7dffcf)"></div>
+    <div class="sw" data-f="red"    style="background:linear-gradient(135deg,#8c1616,#ffb36b)"></div>
+    <div class="sw" data-f="purple" style="background:linear-gradient(135deg,#4a1b8c,#ff7ae0)"></div>
+    <div class="sw" data-f="cyan"   style="background:linear-gradient(135deg,#0b5c6b,#9ffcff)"></div>
+    <div class="sw" data-f="gold"   style="background:linear-gradient(135deg,#6b4a0b,#ffd97a)"></div>
   </div>
+  <button class="sec" id="btnDice" style="margin-top:8px">🎲 بکگراند جدید</button>
 
   <label>فونت فارسی — عنوان / متن</label>
   <div class="row">
@@ -187,25 +212,33 @@
   <button class="sec" id="btnClear">پاک کردن متن‌ها</button>
 
   <div class="hint">
-    فونت فارسی: اگر <b>Vazirmatn</b> یا <b>IRANSans</b> روی ویندوز نصب باشد خودکار استفاده می‌شود،
-    وگرنه Tahoma. برای نتیجهٔ نزدیک‌تر به نمونه، Vazirmatn را نصب کن.<br>
-    اگر دکمهٔ دانلود کار نکرد، از پیش‌نمایش اسکرین‌شات بگیر.
+    هر بار 🎲 بزنی یک منظرهٔ کهکشانی تازه ساخته می‌شود؛ بکگراندی که پسندیدی تا وقتی
+    دوباره 🎲 نزنی ثابت می‌ماند (حتی بعد از بستن صفحه).<br>
+    اگر دکمهٔ دانلود کار نکرد، صفحه را با <b>?raw</b> باز کن و اسکرین‌شات بگیر.
   </div>
 </div>
 
 <div id="stage">
   <div id="scaler">
     <div id="card">
-      <div class="bg"></div>
+      <canvas id="bgc" width="1080" height="1920"></canvas>
 
       <svg class="frame" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
         <defs>
+          <linearGradient id="fg" x1="0" y1="0" x2="1" y2="1">
+            <stop id="fgA" offset="0" stop-color="#4f8bff"/>
+            <stop id="fgB" offset="1" stop-color="#9fd4ff"/>
+          </linearGradient>
           <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="18" result="b"/>
+            <feGaussianBlur stdDeviation="16" result="b"/>
             <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
           </filter>
         </defs>
-        <g fill="none" stroke="currentColor" stroke-width="9" stroke-linejoin="round" filter="url(#glow)" id="frameG">
+        <g fill="none" stroke="url(#fg)" stroke-width="8" stroke-linejoin="round" filter="url(#glow)">
+          <polyline points="-20,150 175,150 250,15 830,15 905,150 1100,150"/>
+          <polyline points="-20,1770 175,1770 250,1905 830,1905 905,1770 1100,1770"/>
+        </g>
+        <g fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.6" stroke-linejoin="round">
           <polyline points="-20,150 175,150 250,15 830,15 905,150 1100,150"/>
           <polyline points="-20,1770 175,1770 250,1905 830,1905 905,1770 1100,1770"/>
         </g>
@@ -231,12 +264,12 @@
         </div>
 
         <div class="ntools">
-          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#e9c264" stroke-width="1.7"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>
-          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#e9c264" stroke-width="1.7"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12l3 3 5-6"/></svg>
-          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#e9c264" stroke-width="1.7"><path d="M20 12l-8 8-8-8 8-8h8z"/><circle cx="15" cy="9" r="1.4"/></svg>
-          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#e9c264" stroke-width="1.7"><rect x="3" y="7" width="18" height="13" rx="3"/><circle cx="12" cy="13.5" r="3.6"/><path d="M8 7l1.5-3h5L16 7"/></svg>
-          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#e9c264" stroke-width="1.7"><path d="M21 3L3 11l7 3 3 7 8-18z"/></svg>
-          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#e9c264" stroke-width="1.7"><rect x="8" y="3" width="12" height="15" rx="2.5"/><path d="M16 21H6a2 2 0 01-2-2V8"/></svg>
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#ffd76a" stroke-width="1.7"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#ffd76a" stroke-width="1.7"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12l3 3 5-6"/></svg>
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#ffd76a" stroke-width="1.7"><path d="M20 12l-8 8-8-8 8-8h8z"/><circle cx="15" cy="9" r="1.4"/></svg>
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#ffd76a" stroke-width="1.7"><rect x="3" y="7" width="18" height="13" rx="3"/><circle cx="12" cy="13.5" r="3.6"/><path d="M8 7l1.5-3h5L16 7"/></svg>
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#ffd76a" stroke-width="1.7"><path d="M21 3L3 11l7 3 3 7 8-18z"/></svg>
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#ffd76a" stroke-width="1.7"><rect x="8" y="3" width="12" height="15" rx="2.5"/><path d="M16 21H6a2 2 0 01-2-2V8"/></svg>
         </div>
       </div>
       </div>
@@ -249,8 +282,144 @@
 
 <script>
 const $ = id => document.getElementById(id);
-const card = $('card'), note = $('note'), frameG = $('frameG');
+const card = $('card'), note = $('note'), bgc = $('bgc');
 const FIELDS = ['iLaw','iFaTitle','iFaBody','iEnTitle','iEnBody'];
+
+/* =====================================================================
+   GALAXY BACKGROUND ENGINE — seeded, so preview and export match exactly
+   ===================================================================== */
+const PALETTES = {
+  blue:   { deep:['#050a24','#03071c'], neb:['#1b3fa8','#3f7bff','#7fd0ff','#2b1e78','#123a8c'], accent:['#4f8bff','#9fd4ff'] },
+  green:  { deep:['#03180f','#02120e'], neb:['#0b6b4f','#19d35c','#7dffcf','#0e3d5c','#0f8c6b'], accent:['#2fe07d','#aefadd'] },
+  red:    { deep:['#1c0505','#12030a'], neb:['#8c1616','#ff4d2e','#ffb36b','#5c0e2e','#a8321b'], accent:['#ff5a3c','#ffc9a3'] },
+  purple: { deep:['#12051f','#0a0318'], neb:['#4a1b8c','#a02bd3','#ff7ae0','#1e1e78','#6b1bb0'], accent:['#c05aff','#ffb3f2'] },
+  cyan:   { deep:['#03141c','#020f16'], neb:['#0b5c6b','#00d6d6','#9ffcff','#123a78','#0e8ca0'], accent:['#22e0e0','#c2ffff'] },
+  gold:   { deep:['#1c1204','#140b03'], neb:['#6b4a0b','#ff9500','#ffd97a','#78331e','#b06f14'], accent:['#ffab2e','#ffe3a3'] },
+};
+const FAMS = Object.keys(PALETTES);
+let bgFam = 'blue', bgSeed = 1;
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hexA(h,a){const n=parseInt(h.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`}
+
+function genBG(fam, seed){
+  const R = mulberry32(seed), P = PALETTES[fam];
+  const g = bgc.getContext('2d');
+  g.setTransform(1,0,0,1,0,0); g.filter='none'; g.globalAlpha=1; g.globalCompositeOperation='source-over';
+
+  /* deep-space base */
+  const base = g.createLinearGradient(0,0,0,1920);
+  base.addColorStop(0,P.deep[0]); base.addColorStop(.5,'#020309'); base.addColorStop(1,P.deep[1]);
+  g.fillStyle=base; g.fillRect(0,0,1080,1920);
+
+  /* milky-way band */
+  g.save(); g.translate(540,960); g.rotate((R()<.5?-1:1)*(.35+R()*.5));
+  const band=g.createLinearGradient(0,-320,0,320);
+  band.addColorStop(0,'rgba(255,255,255,0)'); band.addColorStop(.5,'rgba(205,218,255,.055)'); band.addColorStop(1,'rgba(255,255,255,0)');
+  g.fillStyle=band; g.fillRect(-1500,-320,3000,640); g.restore();
+
+  /* nebulae */
+  g.globalCompositeOperation='lighter';
+  const nn=6+Math.floor(R()*4);
+  for(let i=0;i<nn;i++){
+    const x=R()*1080, y=R()*1920, r=260+R()*640, c=P.neb[Math.floor(R()*P.neb.length)];
+    const gr=g.createRadialGradient(x,y,0,x,y,r);
+    gr.addColorStop(0,hexA(c,.09+R()*.13)); gr.addColorStop(.55,hexA(c,.05)); gr.addColorStop(1,hexA(c,0));
+    g.fillStyle=gr; g.beginPath(); g.arc(x,y,r,0,7); g.fill();
+  }
+  /* aurora arcs hugging the chevron frame */
+  for(const [cy,sy] of [[40,1],[1880,-1]]){
+    const gr=g.createRadialGradient(540,cy,60,540,cy,620);
+    gr.addColorStop(0,hexA(P.accent[0],.28)); gr.addColorStop(.5,hexA(P.accent[0],.08)); gr.addColorStop(1,hexA(P.accent[0],0));
+    g.fillStyle=gr; g.beginPath(); g.arc(540,cy,620,0,7); g.fill();
+  }
+
+  /* star field */
+  for(let i=0;i<430;i++){
+    g.fillStyle=`rgba(255,255,255,${.15+R()*.7})`;
+    g.beginPath(); g.arc(R()*1080,R()*1920,.4+R()*1.2,0,7); g.fill();
+  }
+  /* glowing stars */
+  for(let i=0;i<26;i++){
+    const x=R()*1080,y=R()*1920,r=(1.4+R()*2.2)*6, c=R()<.6?'#ffffff':P.accent[1];
+    const gr=g.createRadialGradient(x,y,0,x,y,r);
+    gr.addColorStop(0,hexA(c,.9)); gr.addColorStop(.3,hexA(c,.22)); gr.addColorStop(1,hexA(c,0));
+    g.fillStyle=gr; g.beginPath(); g.arc(x,y,r,0,7); g.fill();
+  }
+  /* cross-flare stars */
+  for(let i=0;i<5;i++){
+    const x=R()*1080,y=R()*1920,L=22+R()*38;
+    for(const [dx,dy] of [[1,0],[0,1]]){
+      const gr=g.createLinearGradient(x-dx*L,y-dy*L,x+dx*L,y+dy*L);
+      gr.addColorStop(0,'rgba(255,255,255,0)'); gr.addColorStop(.5,hexA(P.accent[1],.85)); gr.addColorStop(1,'rgba(255,255,255,0)');
+      g.strokeStyle=gr; g.lineWidth=dx?1.6:1.2;
+      g.beginPath(); g.moveTo(x-dx*L,y-dy*L); g.lineTo(x+dx*L,y+dy*L); g.stroke();
+    }
+    const gr=g.createRadialGradient(x,y,0,x,y,7);
+    gr.addColorStop(0,'rgba(255,255,255,.95)'); gr.addColorStop(1,'rgba(255,255,255,0)');
+    g.fillStyle=gr; g.beginPath(); g.arc(x,y,7,0,7); g.fill();
+  }
+  /* shooting stars */
+  const ns=1+Math.floor(R()*2);
+  for(let i=0;i<ns;i++){
+    const x=100+R()*880, y=R()<.5? 40+R()*220 : 1560+R()*300;
+    const a=(R()*.6+.2)*(R()<.5?1:-1)+(R()<.5?0:Math.PI);
+    const L=180+R()*260, ex=x+Math.cos(a)*L, ey=y+Math.sin(a)*L*.4;
+    const gr=g.createLinearGradient(x,y,ex,ey);
+    gr.addColorStop(0,'rgba(255,255,255,0)'); gr.addColorStop(1,'rgba(255,255,255,.85)');
+    g.strokeStyle=gr; g.lineWidth=2.2; g.beginPath(); g.moveTo(x,y); g.lineTo(ex,ey); g.stroke();
+    const hg=g.createRadialGradient(ex,ey,0,ex,ey,9);
+    hg.addColorStop(0,'rgba(255,255,255,.95)'); hg.addColorStop(1,'rgba(255,255,255,0)');
+    g.fillStyle=hg; g.beginPath(); g.arc(ex,ey,9,0,7); g.fill();
+  }
+  /* occasional ringed planet, kept clear of the card zone */
+  if(R()<.45){
+    const top=R()<.5, x=140+R()*800, y=top?90+R()*160:1650+R()*160, r=34+R()*56;
+    const gr=g.createRadialGradient(x-r*.4,y-r*.4,r*.1,x,y,r);
+    gr.addColorStop(0,hexA(P.accent[1],.95)); gr.addColorStop(.6,hexA(P.neb[0],.85)); gr.addColorStop(1,hexA(P.deep[0],.9));
+    g.globalCompositeOperation='source-over';
+    g.fillStyle=gr; g.beginPath(); g.arc(x,y,r,0,7); g.fill();
+    if(R()<.6){
+      g.save(); g.translate(x,y); g.rotate(-.4+R()*.8); g.scale(1,.28);
+      g.strokeStyle=hexA(P.accent[1],.5); g.lineWidth=3.5;
+      g.beginPath(); g.arc(0,0,r*1.7,0,7); g.stroke(); g.restore();
+    }
+    g.globalCompositeOperation='lighter';
+  }
+  /* floating glass orbs */
+  g.globalCompositeOperation='source-over';
+  for(let i=0;i<3;i++){
+    const x=R()*1080, y=R()<.5?R()*300:1620+R()*280, r=9+R()*24;
+    g.fillStyle='rgba(255,255,255,.05)'; g.beginPath(); g.arc(x,y,r,0,7); g.fill();
+    g.strokeStyle='rgba(255,255,255,.22)'; g.lineWidth=1.2; g.beginPath(); g.arc(x,y,r,0,7); g.stroke();
+    g.fillStyle='rgba(255,255,255,.5)'; g.beginPath(); g.arc(x-r*.35,y-r*.35,r*.16,0,7); g.fill();
+  }
+  /* vignette + readability scrim behind the card zone */
+  const v=g.createRadialGradient(540,960,520,540,960,1260);
+  v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(0,0,0,.55)');
+  g.fillStyle=v; g.fillRect(0,0,1080,1920);
+  const s=g.createLinearGradient(0,290,0,1560);
+  s.addColorStop(0,'rgba(2,3,9,0)'); s.addColorStop(.18,'rgba(2,3,9,.3)');
+  s.addColorStop(.82,'rgba(2,3,9,.3)'); s.addColorStop(1,'rgba(2,3,9,0)');
+  g.fillStyle=s; g.fillRect(0,290,1080,1270);
+
+  /* recolour the neon frame to match */
+  $('fgA').setAttribute('stop-color',P.accent[0]);
+  $('fgB').setAttribute('stop-color',P.accent[1]);
+}
+
+function regen(fam, seed){
+  bgFam=fam; bgSeed=seed;
+  localStorage.setItem('st_bgFam',fam); localStorage.setItem('st_bgSeed',seed);
+  document.querySelectorAll('.sw').forEach(x=>x.classList.toggle('on',x.dataset.f===fam));
+  genBG(fam,seed);
+}
+const rndSeed = () => (Math.random()*2**31)|0;
+$('sw').addEventListener('click', e => {
+  const t=e.target.closest('.sw'); if(!t) return;
+  regen(t.dataset.f, rndSeed());
+});
+$('btnDice').onclick = () => regen(FAMS[(Math.random()*FAMS.length)|0], rndSeed());
 
 /* ---- Persian fonts ---- */
 /* condensed faces need a bigger point size to carry the same visual weight */
@@ -304,16 +473,6 @@ function autoFit(){
   }
 }
 
-/* ---- accent color ---- */
-$('sw').addEventListener('click', e => {
-  const t = e.target.closest('.sw'); if (!t) return;
-  document.querySelectorAll('.sw').forEach(x => x.classList.remove('on'));
-  t.classList.add('on');
-  setAccent(t.dataset.c);
-  localStorage.setItem('st_accent', t.dataset.c);
-});
-function setAccent(c){ card.style.setProperty('--accent', c); frameG.setAttribute('stroke', c); }
-
 /* ---- images ---- */
 function hookImg(inputId, outId, key){
   $(inputId).addEventListener('change', e => {
@@ -348,11 +507,21 @@ function fitStage(){
   $('scaler').style.width  = (1080 * scale) + 'px';
 }
 
-/* ---- export PNG via SVG foreignObject ---- */
-$('btnPng').addEventListener('click', async () => {
+/* =====================================================================
+   PNG EXPORT — glass is baked manually:
+   1) draw the galaxy canvas, 2) pre-blur it inside each glass region
+   (backdrop-filter doesn't survive foreignObject), 3) draw the DOM on top
+   (its semi-transparent fills + text complete the glass look).
+   ===================================================================== */
+async function buildExportCanvas(){
   const prev = $('scaler').style.transform;
   $('scaler').style.transform = 'scale(1)';
   try {
+    const cardR = card.getBoundingClientRect();
+    const regions = [ {el:note, rad:34}, {el:document.querySelector('.pill'), rad:18} ]
+      .map(({el,rad}) => { const r = el.getBoundingClientRect();
+        return { x:r.left-cardR.left, y:r.top-cardR.top, w:r.width, h:r.height, rad }; });
+
     const html = new XMLSerializer().serializeToString(card);
     const css  = [...document.styleSheets[0].cssRules].map(r => r.cssText).join('\n');
     const svg =
@@ -363,17 +532,36 @@ $('btnPng').addEventListener('click', async () => {
     const img = new Image();
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
     await img.decode();
+
     const cv = document.createElement('canvas');
     cv.width = 1080; cv.height = 1920;
-    cv.getContext('2d').drawImage(img, 0, 0);
+    const x = cv.getContext('2d');
+    x.drawImage(bgc, 0, 0);
+    for (const r of regions){
+      x.save();
+      x.beginPath(); x.roundRect(r.x, r.y, r.w, r.h, r.rad); x.clip();
+      x.filter = 'blur(55px)';
+      x.drawImage(bgc, 0, 0);
+      x.restore();
+    }
+    x.filter = 'none';
+    x.drawImage(img, 0, 0);
+    return cv;
+  } finally {
+    $('scaler').style.transform = prev;
+  }
+}
+window.buildExportCanvas = buildExportCanvas;
+
+$('btnPng').addEventListener('click', async () => {
+  try {
+    const cv = await buildExportCanvas();
     const a = document.createElement('a');
     a.download = ($('iLaw').value || 'story').replace(/\s+/g, '_') + '.png';
     a.href = cv.toDataURL('image/png');
     a.click();
   } catch (err) {
-    alert('خروجی PNG ناموفق بود:\n' + err.message + '\nاز پیش‌نمایش اسکرین‌شات بگیر.');
-  } finally {
-    $('scaler').style.transform = prev;
+    alert('خروجی PNG ناموفق بود:\n' + err.message + '\nاز حالت ?raw اسکرین‌شات بگیر.');
   }
 });
 
@@ -383,16 +571,18 @@ $('btnClear').onclick = () => { FIELDS.forEach(f => { $(f).value = ''; localStor
 
 (function boot(){
   FIELDS.forEach(f => { const v = localStorage.getItem('st_' + f); if (v !== null) $(f).value = v; });
-  const acc = localStorage.getItem('st_accent');
-  if (acc) {
-    setAccent(acc);
-    document.querySelectorAll('.sw').forEach(x => x.classList.toggle('on', x.dataset.c === acc));
-  } else setAccent('#1a4dff');
   ['iFontTitle','iFontBody'].forEach(id => {
     const v = localStorage.getItem('st_' + id); if (v) $(id).value = v;
     setFont(id === 'iFontTitle' ? 'title' : 'body', $(id).value);
   });
   const sg = localStorage.getItem('st_sign'); if (sg) showImg('oSign', sg);
+
+  /* background: URL params (?fam=blue&seed=123) > saved > random */
+  const q = new URLSearchParams(location.search);
+  const fam = q.get('fam') || localStorage.getItem('st_bgFam') || FAMS[(Math.random()*FAMS.length)|0];
+  const seed = q.has('seed') ? (+q.get('seed')|0) : (+localStorage.getItem('st_bgSeed') || rndSeed());
+  regen(FAMS.includes(fam) ? fam : 'blue', seed);
+
   FIELDS.forEach(f => $(f).addEventListener('input', render));
   window.addEventListener('resize', () => { fitStage(); autoFit(); });
   fitStage(); render();
