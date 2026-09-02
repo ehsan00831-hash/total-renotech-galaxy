@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ *
+ * TotalRENOTech design tokens
+ * ------------------------------------------------------------------ */
+@theme {
+  --color-brand: #006EB8;
+  --color-brand-dark: #00548C;
+  --color-brand-light: #2D8FD0;
+  --color-brand-wash: #EAF5FC;
+  --color-ink: #0B0F14;
+  --color-gold: #D4AF37;
+  --color-ok: #2E7D32;
+  --color-warn: #F9A825;
+  --color-bad: #C62828;
+  --color-line: #DDE4EC;
+  --color-canvas: #F5F7FA;
+  --font-sans: Roboto, "Segoe UI", Arial, system-ui, sans-serif;
+}
+
+:root {
+  --surface: #FFFFFF;
+  --canvas: #F5F7FA;
+  --text: #0B0F14;
+  --text-muted: #5C6B7A;
+  --line: #DDE4EC;
+}
+
+/* Dark mode is opt-in via the `dark` class on <html>. */
+.dark {
+  --surface: #131A22;
+  --canvas: #0B0F14;
+  --text: #E8EEF4;
+  --text-muted: #93A2B1;
+  --line: #24303C;
+}
+
+html, body { height: 100%; }
+
+body {
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Persian reads right-to-left; flip only layout, never numbers. */
+[dir="rtl"] { text-align: right; }
+[dir="rtl"] .flip-x { transform: scaleX(-1); }
+
+/* Keyboard focus stays visible everywhere. */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Tables scroll on their own rather than pushing the page sideways. */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Loading skeleton */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--line) 25%, var(--canvas) 50%, var(--line) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+}
