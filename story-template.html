@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="utf-8">
+<title>Story Template — قوانین</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #0d0f12; color: #ddd;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    display: flex; gap: 18px; padding: 18px; align-items: flex-start;
+  }
+
+  /* ---------- control panel ---------- */
+  #panel { width: 380px; flex: 0 0 380px; }
+  #panel h2 { font-size: 15px; margin: 0 0 12px; color: #e8c86a; letter-spacing: .5px; }
+  label { display: block; font-size: 11px; margin: 12px 0 4px; color: #8c93a0; text-transform: uppercase; letter-spacing: .6px; }
+  input[type=text], textarea, select {
+    width: 100%; background: #16191e; border: 1px solid #2a2f38; color: #eee;
+    border-radius: 8px; padding: 8px 10px; font-size: 13px; font-family: inherit;
+  }
+  input[type=range] { width: 100%; }
+  textarea { resize: vertical; line-height: 1.6; }
+  .rtl { direction: rtl; text-align: right; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; }
+  button {
+    width: 100%; margin-top: 16px; padding: 11px; border: 0; border-radius: 8px;
+    background: #e8c86a; color: #14171c; font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+  button.sec { background: #262b33; color: #cfd4dd; margin-top: 8px; }
+  .hint { font-size: 11px; color: #6d7480; margin-top: 10px; line-height: 1.6; }
+  .swatches { display: flex; gap: 6px; margin-top: 6px; }
+  .sw { flex: 1; height: 28px; border-radius: 7px; cursor: pointer; border: 2px solid transparent; }
+  .sw.on { border-color: #fff; }
+
+  /* ---------- preview scaling ---------- */
+  #stage { flex: 1; display: flex; justify-content: center; }
+  #scaler { transform-origin: top center; }
+
+  /* =====================================================================
+     THE STORY CANVAS
+     Every dimension derives from --k (width scale) so one layout serves
+     every export size. --k is 1 at the 1080px-wide story format.
+     ===================================================================== */
+  #card {
+    width: 1080px; height: 1920px; position: relative; overflow: hidden;
+    background: #020309;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    --k: 1;
+  }
+  #bgc { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #card svg.frame { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* centered stack: pill + note */
+  .wrap {
+    position: absolute; left: 0; right: 0; z-index: 3;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+
+  /* ---------- glass law pill ---------- */
+  .pill {
+    align-self: flex-end; flex: 0 0 auto;
+    margin: 0 calc(36px * var(--k)) calc(16px * var(--k)) 0;
+    display: flex; align-items: center; gap: calc(22px * var(--k));
+    padding: calc(14px * var(--k)) calc(34px * var(--k)) calc(18px * var(--k));
+    border-radius: calc(18px * var(--k));
+    border: 1px solid transparent;
+    background:
+      linear-gradient(rgba(14,18,34,.42), rgba(14,18,34,.42)) padding-box,
+      linear-gradient(150deg, rgba(255,224,138,.85), rgba(255,224,138,.14) 45%, rgba(255,255,255,.06) 70%, rgba(255,224,138,.5)) border-box;
+    -webkit-backdrop-filter: blur(42px) saturate(160%);
+    backdrop-filter: blur(42px) saturate(160%);
+    box-shadow: 0 calc(18px * var(--k)) calc(44px * var(--k)) rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.22);
+  }
+  .pill span {
+    font-size: calc(46px * var(--k)); font-weight: 800; color: #ffd76a;
+    border-bottom: calc(3px * var(--k)) solid #ffd76a; padding-bottom: calc(2px * var(--k));
+    line-height: 1.25;
+    text-shadow: 0 0 calc(26px * var(--k)) rgba(255,190,80,.45);
+  }
+  .pill i { font-style: normal; font-size: calc(40px * var(--k)); color: #ffd76a; line-height: 1.25; }
+
+  /* ---------- glass note card ---------- */
+  .note {
+    margin: 0 calc(36px * var(--k)) 0 calc(68px * var(--k));
+    flex: 0 0 auto;                 /* never compress: autoFit needs the true height */
+    position: relative;
+    border-radius: calc(34px * var(--k)); overflow: hidden;
+    border: 1px solid transparent;
+    background:
+      linear-gradient(rgba(10,14,28,.44), rgba(8,11,22,.5)) padding-box,
+      linear-gradient(165deg, rgba(255,255,255,.55), rgba(255,255,255,.12) 22%, rgba(255,255,255,.04) 55%, rgba(255,255,255,.02) 78%, rgba(255,255,255,.3)) border-box;
+    -webkit-backdrop-filter: blur(46px) saturate(155%);
+    backdrop-filter: blur(46px) saturate(155%);
+    box-shadow: 0 calc(40px * var(--k)) calc(90px * var(--k)) rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.28);
+    display: flex; flex-direction: column;
+  }
+  /* refraction highlight sweeping the top edge */
+  .note::before {
+    content: ""; position: absolute; top: 0; left: 8%; right: 30%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.9), transparent);
+    z-index: 5; pointer-events: none;
+  }
+  .note::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 4;
+    background: linear-gradient(155deg, rgba(255,255,255,.09) 0%, rgba(255,255,255,.02) 18%, transparent 40%);
+  }
+  .nbar {
+    display: flex; align-items: center; padding: calc(24px * var(--k)) calc(34px * var(--k));
+    background: linear-gradient(rgba(255,255,255,.075), rgba(255,255,255,.035));
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    color: #ffd76a; font-size: calc(30px * var(--k)); font-weight: 700; line-height: 1.3;
+  }
+  .nbar .sp { flex: 1; }
+  .nbar .ic { margin: 0 calc(18px * var(--k)); opacity: .95; }
+  .nbar .ic1 { width: calc(34px * var(--k)); height: calc(34px * var(--k)); }
+  .nbar .ic2 { width: calc(30px * var(--k)); height: calc(34px * var(--k)); }
+  .nbody { padding: calc(36px * var(--k)) calc(42px * var(--k)) calc(12px * var(--k)); flex: 1; position: relative; }
+
+  .fa-title {
+    direction: rtl; text-align: center; color: #ffd76a;
+    font-weight: 800; font-size: calc(44px * var(--k)); line-height: 1.4;
+    margin-bottom: calc(24px * var(--k));
+    text-shadow: 0 0 calc(30px * var(--k)) rgba(255,190,80,.35), 0 2px 10px rgba(0,0,0,.6);
+  }
+  .fa-body {
+    direction: rtl; text-align: justify; color: #fff;
+    font-weight: 700; font-size: calc(33px * var(--k)); line-height: 1.85; white-space: pre-wrap;
+    text-shadow: 0 1px 10px rgba(0,0,0,.65);
+  }
+  .ph {
+    color: #8b93a4; font-size: calc(30px * var(--k)); margin: calc(34px * var(--k)) 0 calc(6px * var(--k));
+    border-left: calc(3px * var(--k)) solid #ffd76a; padding-left: calc(12px * var(--k)); line-height: 1.5;
+  }
+  .en-title {
+    color: #ffd76a; font-weight: 800; font-size: calc(40px * var(--k));
+    margin: calc(8px * var(--k)) 0 calc(20px * var(--k)); line-height: 1.3;
+    text-shadow: 0 0 calc(26px * var(--k)) rgba(255,190,80,.3), 0 2px 8px rgba(0,0,0,.55);
+  }
+  .en-body {
+    color: #f2f4fa; font-size: calc(30px * var(--k)); line-height: 1.55;
+    text-align: justify; white-space: pre-wrap;
+    text-shadow: 0 1px 8px rgba(0,0,0,.6);
+  }
+
+  .ntools {
+    display: flex; justify-content: space-around; align-items: center;
+    padding: calc(22px * var(--k)) calc(30px * var(--k));
+    background: linear-gradient(rgba(255,255,255,.035), rgba(255,255,255,.07));
+    border-top: 1px solid rgba(255,255,255,.1); margin-top: calc(26px * var(--k));
+  }
+  .ntools svg { width: calc(42px * var(--k)); height: calc(42px * var(--k)); }
+
+  .glyph { position: absolute; left: 0; right: 0; text-align: center; z-index: 3; }
+  .glyph img { max-width: calc(620px * var(--k)); max-height: calc(230px * var(--k)); }
+  .sign { position: absolute; left: 0; right: 0; text-align: center; z-index: 3; }
+  .sign img { max-width: calc(340px * var(--k)); max-height: calc(110px * var(--k)); opacity: .85; }
+</style>
+</head>
+<body>
+
+<div id="panel">
+  <h2>■ تمپلیت استوری — قوانین</h2>
+
+  <label>اندازهٔ خروجی</label>
+  <select id="iSize">
+    <option value="story" selected>استوری / ریلز — 1080×1920 (9:16)</option>
+    <option value="post45">پست اینستاگرام — 1080×1350 (4:5)</option>
+    <option value="post34">پست بلند — 1080×1440 (3:4)</option>
+    <option value="square">پست مربع — 1080×1080 (1:1)</option>
+    <option value="landscape">افقی / یوتیوب — 1920×1080 (16:9)</option>
+    <option value="wide">لینک‌پریویو — 1200×630 (1.91:1)</option>
+  </select>
+
+  <label>شماره قانون (متن پیل)</label>
+  <input type="text" id="iLaw" class="rtl" value="قانون یازدهم">
+
+  <label>تم کهکشان — یا 🎲 برای رندوم کامل</label>
+  <div class="swatches" id="sw">
+    <div class="sw on" data-f="blue"   style="background:linear-gradient(135deg,#1b3fa8,#7fd0ff)"></div>
+    <div class="sw" data-f="green"  style="background:linear-gradient(135deg,#0b6b4f,#7dffcf)"></div>
+    <div class="sw" data-f="red"    style="background:linear-gradient(135deg,#8c1616,#ffb36b)"></div>
+    <div class="sw" data-f="purple" style="background:linear-gradient(135deg,#4a1b8c,#ff7ae0)"></div>
+    <div class="sw" data-f="cyan"   style="background:linear-gradient(135deg,#0b5c6b,#9ffcff)"></div>
+    <div class="sw" data-f="gold"   style="background:linear-gradient(135deg,#6b4a0b,#ffd97a)"></div>
+  </div>
+  <button class="sec" id="btnDice" style="margin-top:8px">🎲 بکگراند کهکشانی جدید</button>
+
+  <label>بکگراند دستی (عکس خودت)</label>
+  <input type="file" id="iBg" accept="image/*">
+  <div class="row" style="margin-top:8px">
+    <button class="sec" id="btnBgClear" style="margin:0">↩ برگرد به کهکشان</button>
+  </div>
+  <label id="dimLbl" style="display:none">تیرگی بکگراند — برای خوانایی متن <b id="dimVal">40٪</b></label>
+  <input type="range" id="iDim" min="0" max="80" value="40" style="display:none">
+
+  <label>فونت فارسی — عنوان / متن</label>
+  <div class="row">
+    <select id="iFontTitle">
+      <option selected>Ordibehesht</option>
+      <option>Vazir Black</option>
+      <option>Vazir</option>
+      <option>Vazir Medium</option>
+      <option>Yekan Bakh Fat</option>
+      <option>Yekan Bakh</option>
+      <option>IRANSansX ExtraBold</option>
+      <option>IRANSans Black</option>
+      <option>Sahel Black</option>
+      <option>Shabnam</option>
+    </select>
+    <select id="iFontBody">
+      <option>Ordibehesht</option>
+      <option>Vazir Black</option>
+      <option selected>Vazir</option>
+      <option>Vazir Medium</option>
+      <option>Yekan Bakh Fat</option>
+      <option>Yekan Bakh</option>
+      <option>IRANSansX ExtraBold</option>
+      <option>IRANSans Black</option>
+      <option>Sahel Black</option>
+      <option>Shabnam</option>
+    </select>
+  </div>
+
+  <label>عنوان فارسی</label>
+  <input type="text" id="iFaTitle" class="rtl" value="کاری را انجام بده که تو را زنده می‌کند">
+
+  <label>متن فارسی</label>
+  <textarea id="iFaBody" class="rtl" rows="7">بعضی فعالیت‌ها فقط وقتت را پر نمی‌کنند؛ چیزی عمیق درونت را بیدار می‌کنند و انرژی‌ات را چند برابر می‌سازند.</textarea>
+
+  <label>English title</label>
+  <input type="text" id="iEnTitle" value="Do What Makes You Feel Alive">
+
+  <label>English text</label>
+  <textarea id="iEnBody" rows="7">Some activities do more than fill your time; they awaken something deep within you and multiply your energy.</textarea>
+
+  <label>آیکن / گرافیک پایین (اختیاری)</label>
+  <input type="file" id="iGlyph" accept="image/*">
+
+  <label>امضا (اختیاری — یک بار انتخاب کن، ذخیره می‌شود)</label>
+  <input type="file" id="iSign" accept="image/*">
+
+  <button id="btnPng">⬇ دانلود PNG</button>
+  <button class="sec" id="btnSave">💾 ذخیره این متن‌ها</button>
+  <button class="sec" id="btnClear">پاک کردن متن‌ها</button>
+
+  <div class="hint">
+    هر بار 🎲 بزنی یک منظرهٔ کهکشانی تازه ساخته می‌شود؛ بکگراندی که پسندیدی
+    ذخیره می‌ماند. با «بکگراند دستی» می‌توانی عکس خودت را بگذاری و با اسلایدر
+    تیرگی، خوانایی متن را تنظیم کنی.<br>
+    برای دیدن دقیقِ فایل خروجی قبل از دانلود: صفحه را با <b>?export</b> باز کن.
+  </div>
+</div>
+
+<div id="stage">
+  <div id="scaler">
+    <div id="card">
+      <canvas id="bgc" width="1080" height="1920"></canvas>
+
+      <svg class="frame" id="frame" viewBox="0 0 1080 1920" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="fg" x1="0" y1="0" x2="1" y2="1">
+            <stop id="fgA" offset="0" stop-color="#4f8bff"/>
+            <stop id="fgB" offset="1" stop-color="#9fd4ff"/>
+          </linearGradient>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="16" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <g fill="none" stroke="url(#fg)" stroke-width="8" stroke-linejoin="round" filter="url(#glow)">
+          <polyline id="fp1" points=""/><polyline id="fp2" points=""/>
+        </g>
+        <g fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.6" stroke-linejoin="round">
+          <polyline id="fp3" points=""/><polyline id="fp4" points=""/>
+        </g>
+      </svg>
+
+      <div class="wrap" id="wrap">
+      <div class="pill" id="pill"><i>‹</i><span id="oLaw"></span></div>
+
+      <div class="note" id="note">
+        <div class="nbar">
+          <span>‹ Notes</span><span class="sp"></span>
+          <svg class="ic ic1" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="16" cy="12" r="1.5"/></svg>
+          <svg class="ic ic2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 16V3M12 3l-4 4M12 3l4 4M4 14v6a1 1 0 001 1h14a1 1 0 001-1v-6"/></svg>
+          <span style="margin-left:14px">Done</span>
+        </div>
+
+        <div class="nbody">
+          <div class="fa-title" id="oFaTitle"></div>
+          <div class="fa-body" id="oFaBody"></div>
+          <div class="ph">Type your note here...</div>
+          <div class="en-title" id="oEnTitle"></div>
+          <div class="en-body" id="oEnBody"></div>
+        </div>
+
+        <div class="ntools">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffd76a" stroke-width="1.7"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffd76a" stroke-width="1.7"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12l3 3 5-6"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffd76a" stroke-width="1.7"><path d="M20 12l-8 8-8-8 8-8h8z"/><circle cx="15" cy="9" r="1.4"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffd76a" stroke-width="1.7"><rect x="3" y="7" width="18" height="13" rx="3"/><circle cx="12" cy="13.5" r="3.6"/><path d="M8 7l1.5-3h5L16 7"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffd76a" stroke-width="1.7"><path d="M21 3L3 11l7 3 3 7 8-18z"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ffd76a" stroke-width="1.7"><rect x="8" y="3" width="12" height="15" rx="2.5"/><path d="M16 21H6a2 2 0 01-2-2V8"/></svg>
+        </div>
+      </div>
+      </div>
+
+      <div class="glyph" id="glyphBox"><img id="oGlyph" style="display:none"></div>
+      <div class="sign" id="signBox"><img id="oSign" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const card = $('card'), note = $('note'), bgc = $('bgc'), pill = $('pill');
+const FIELDS = ['iLaw','iFaTitle','iFaBody','iEnTitle','iEnBody'];
+
+/* =====================================================================
+   OUTPUT SIZES — every layout constant is a fraction of W/H, so one
+   design serves all of them.
+   ===================================================================== */
+const SIZES = {
+  story:     [1080,1920],
+  post45:    [1080,1350],
+  post34:    [1080,1440],
+  square:    [1080,1080],
+  landscape: [1920,1080],
+  wide:      [1200, 630],
+};
+let W = 1080, H = 1920, K = 1;
+
+function applySize(name){
+  [W,H] = SIZES[name] || SIZES.story;
+  /* Scale the chrome (header, toolbar, paddings, icons) by width, but clamp it
+     against height: on wide-short formats a width-only scale inflates the
+     fixed furniture until it eats the whole canvas and autoFit - which only
+     shrinks the four text blocks - cannot recover. */
+  K = Math.min(W / 1080, H / 1350);
+  card.style.width = W + 'px'; card.style.height = H + 'px';
+  card.style.setProperty('--k', K);
+  bgc.width = W; bgc.height = H;
+
+  /* chevron frame, expressed as fractions of the canvas */
+  const fx = n => (n * W).toFixed(1);
+  const top1 = (0.0781*H).toFixed(1), top2 = (0.0078*H).toFixed(1);
+  const bot1 = (0.9219*H).toFixed(1), bot2 = (0.9922*H).toFixed(1);
+  const pTop = `${fx(-0.019)},${top1} ${fx(0.162)},${top1} ${fx(0.231)},${top2} ${fx(0.769)},${top2} ${fx(0.838)},${top1} ${fx(1.019)},${top1}`;
+  const pBot = `${fx(-0.019)},${bot1} ${fx(0.162)},${bot1} ${fx(0.231)},${bot2} ${fx(0.769)},${bot2} ${fx(0.838)},${bot1} ${fx(1.019)},${bot1}`;
+  $('frame').setAttribute('viewBox', `0 0 ${W} ${H}`);
+  $('fp1').setAttribute('points', pTop); $('fp3').setAttribute('points', pTop);
+  $('fp2').setAttribute('points', pBot); $('fp4').setAttribute('points', pBot);
+  $('frame').querySelectorAll('g')[0].setAttribute('stroke-width', 8 * K);
+  $('frame').querySelectorAll('g')[1].setAttribute('stroke-width', 1.6 * K);
+  $('frame').querySelector('feGaussianBlur').setAttribute('stdDeviation', 16 * K);
+
+  /* content band */
+  $('wrap').style.top    = (0.0911*H) + 'px';
+  $('wrap').style.bottom = (0.1719*H) + 'px';
+  $('glyphBox').style.bottom = (0.1042*H) + 'px';
+  $('signBox').style.bottom  = (0.0469*H) + 'px';
+
+  localStorage.setItem('st_size', name);
+}
+
+/* =====================================================================
+   GALAXY BACKGROUND ENGINE — seeded, so preview and export match exactly
+   ===================================================================== */
+const PALETTES = {
+  blue:   { deep:['#050a24','#03071c'], neb:['#1b3fa8','#3f7bff','#7fd0ff','#2b1e78','#123a8c'], accent:['#4f8bff','#9fd4ff'] },
+  green:  { deep:['#03180f','#02120e'], neb:['#0b6b4f','#19d35c','#7dffcf','#0e3d5c','#0f8c6b'], accent:['#2fe07d','#aefadd'] },
+  red:    { deep:['#1c0505','#12030a'], neb:['#8c1616','#ff4d2e','#ffb36b','#5c0e2e','#a8321b'], accent:['#ff5a3c','#ffc9a3'] },
+  purple: { deep:['#12051f','#0a0318'], neb:['#4a1b8c','#a02bd3','#ff7ae0','#1e1e78','#6b1bb0'], accent:['#c05aff','#ffb3f2'] },
+  cyan:   { deep:['#03141c','#020f16'], neb:['#0b5c6b','#00d6d6','#9ffcff','#123a78','#0e8ca0'], accent:['#22e0e0','#c2ffff'] },
+  gold:   { deep:['#1c1204','#140b03'], neb:['#6b4a0b','#ff9500','#ffd97a','#78331e','#b06f14'], accent:['#ffab2e','#ffe3a3'] },
+};
+const FAMS = Object.keys(PALETTES);
+let bgFam = 'blue', bgSeed = 1, bgImage = null;
+
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hexA(h,a){const n=parseInt(h.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`}
+
+/* Dark vignette + scrim: what keeps text readable on any background.
+   Both are built from many eased stops spanning the whole canvas. The earlier
+   version ramped over a sub-band and then held flat, and the kink where the
+   ramp met the flat part read as a hard horizontal seam - the background
+   looked split into two tones. A curve with no slope discontinuity has no
+   seam to see. */
+const smoothstep = t => { const u = Math.max(0, Math.min(1, t)); return u*u*(3 - 2*u); };
+
+function readabilityPass(g){
+  const v = g.createRadialGradient(W/2, H/2, Math.min(W,H)*0.30, W/2, H/2, Math.hypot(W,H)*0.60);
+  for (let i = 0; i <= 12; i++){
+    const t = i/12;
+    v.addColorStop(t, `rgba(0,0,0,${(0.55 * smoothstep(t)).toFixed(4)})`);
+  }
+  g.fillStyle = v; g.fillRect(0,0,W,H);
+
+  /* one continuous bell across the full height, peaking behind the card */
+  const s = g.createLinearGradient(0, 0, 0, H);
+  for (let i = 0; i <= 24; i++){
+    const t = i/24;
+    const bell = Math.sin(Math.PI * Math.max(0, Math.min(1, (t - 0.04) / 0.92)));
+    s.addColorStop(t, `rgba(2,3,9,${(0.34 * bell * bell).toFixed(4)})`);
+  }
+  g.fillStyle = s; g.fillRect(0,0,W,H);
+}
+
+function drawCustomBG(){
+  const g = bgc.getContext('2d');
+  g.setTransform(1,0,0,1,0,0); g.filter='none'; g.globalAlpha=1; g.globalCompositeOperation='source-over';
+  g.fillStyle='#000'; g.fillRect(0,0,W,H);
+  /* cover-fit */
+  const s = Math.max(W/bgImage.width, H/bgImage.height);
+  const dw = bgImage.width*s, dh = bgImage.height*s;
+  g.drawImage(bgImage, (W-dw)/2, (H-dh)/2, dw, dh);
+  /* user-controlled dim, then the standard readability pass */
+  g.fillStyle = `rgba(2,3,9,${(+$('iDim').value)/100})`;
+  g.fillRect(0,0,W,H);
+  readabilityPass(g);
+  const P = PALETTES[bgFam];
+  $('fgA').setAttribute('stop-color',P.accent[0]);
+  $('fgB').setAttribute('stop-color',P.accent[1]);
+}
+
+function genBG(fam, seed){
+  if (bgImage) return drawCustomBG();
+  const R = mulberry32(seed), P = PALETTES[fam];
+  const g = bgc.getContext('2d');
+  g.setTransform(1,0,0,1,0,0); g.filter='none'; g.globalAlpha=1; g.globalCompositeOperation='source-over';
+  const D = Math.hypot(W,H) / Math.hypot(1080,1920);   // density/size scale vs the story format
+
+  /* deep-space base - eased between the three anchors rather than linearly,
+     so the midpoint does not leave a visible kink across the canvas */
+  const rgb = h => { const n=parseInt(h.slice(1),16); return [n>>16&255, n>>8&255, n&255]; };
+  const A = rgb(P.deep[0]), M = rgb('#020309'), B = rgb(P.deep[1]);
+  const base = g.createLinearGradient(0,0,0,H);
+  for (let i = 0; i <= 24; i++){
+    const t = i/24;
+    const [c0, c1, u] = t < .5 ? [A, M, smoothstep(t/.5)] : [M, B, smoothstep((t-.5)/.5)];
+    const c = c0.map((v, j) => Math.round(v + (c1[j]-v)*u));
+    base.addColorStop(t, `rgb(${c[0]},${c[1]},${c[2]})`);
+  }
+  g.fillStyle=base; g.fillRect(0,0,W,H);
+
+  /* milky-way band */
+  g.save(); g.translate(W/2,H/2); g.rotate((R()<.5?-1:1)*(.35+R()*.5));
+  const bw = Math.hypot(W,H), bh = 320*D;
+  const band=g.createLinearGradient(0,-bh,0,bh);
+  band.addColorStop(0,'rgba(255,255,255,0)'); band.addColorStop(.5,'rgba(205,218,255,.055)'); band.addColorStop(1,'rgba(255,255,255,0)');
+  g.fillStyle=band; g.fillRect(-bw,-bh,bw*2,bh*2); g.restore();
+
+  /* nebulae */
+  g.globalCompositeOperation='lighter';
+  const nn=6+Math.floor(R()*4);
+  for(let i=0;i<nn;i++){
+    const x=R()*W, y=R()*H, r=(260+R()*640)*D, c=P.neb[Math.floor(R()*P.neb.length)];
+    const gr=g.createRadialGradient(x,y,0,x,y,r);
+    gr.addColorStop(0,hexA(c,.09+R()*.13)); gr.addColorStop(.55,hexA(c,.05)); gr.addColorStop(1,hexA(c,0));
+    g.fillStyle=gr; g.beginPath(); g.arc(x,y,r,0,7); g.fill();
+  }
+  /* aurora arcs hugging the chevron frame */
+  for(const cy of [H*0.021, H*0.979]){
+    const r=620*D;
+    const gr=g.createRadialGradient(W/2,cy,60*D,W/2,cy,r);
+    gr.addColorStop(0,hexA(P.accent[0],.28)); gr.addColorStop(.5,hexA(P.accent[0],.08)); gr.addColorStop(1,hexA(P.accent[0],0));
+    g.fillStyle=gr; g.beginPath(); g.arc(W/2,cy,r,0,7); g.fill();
+  }
+
+  /* star field */
+  const stars = Math.round(430*D*D);
+  for(let i=0;i<stars;i++){
+    g.fillStyle=`rgba(255,255,255,${.15+R()*.7})`;
+    g.beginPath(); g.arc(R()*W,R()*H,(.4+R()*1.2)*D,0,7); g.fill();
+  }
+  /* glowing stars */
+  for(let i=0;i<Math.round(26*D*D);i++){
+    const x=R()*W,y=R()*H,r=(1.4+R()*2.2)*6*D, c=R()<.6?'#ffffff':P.accent[1];
+    const gr=g.createRadialGradient(x,y,0,x,y,r);
+    gr.addColorStop(0,hexA(c,.9)); gr.addColorStop(.3,hexA(c,.22)); gr.addColorStop(1,hexA(c,0));
+    g.fillStyle=gr; g.beginPath(); g.arc(x,y,r,0,7); g.fill();
+  }
+  /* cross-flare stars */
+  for(let i=0;i<5;i++){
+    const x=R()*W,y=R()*H,L=(22+R()*38)*D;
+    for(const [dx,dy] of [[1,0],[0,1]]){
+      const gr=g.createLinearGradient(x-dx*L,y-dy*L,x+dx*L,y+dy*L);
+      gr.addColorStop(0,'rgba(255,255,255,0)'); gr.addColorStop(.5,hexA(P.accent[1],.85)); gr.addColorStop(1,'rgba(255,255,255,0)');
+      g.strokeStyle=gr; g.lineWidth=(dx?1.6:1.2)*D;
+      g.beginPath(); g.moveTo(x-dx*L,y-dy*L); g.lineTo(x+dx*L,y+dy*L); g.stroke();
+    }
+    const gr=g.createRadialGradient(x,y,0,x,y,7*D);
+    gr.addColorStop(0,'rgba(255,255,255,.95)'); gr.addColorStop(1,'rgba(255,255,255,0)');
+    g.fillStyle=gr; g.beginPath(); g.arc(x,y,7*D,0,7); g.fill();
+  }
+  /* shooting stars */
+  for(let i=0;i<1+Math.floor(R()*2);i++){
+    const x=W*0.09+R()*W*0.82, y=R()<.5? H*0.02+R()*H*0.11 : H*0.81+R()*H*0.16;
+    const a=(R()*.6+.2)*(R()<.5?1:-1)+(R()<.5?0:Math.PI);
+    const L=(180+R()*260)*D, ex=x+Math.cos(a)*L, ey=y+Math.sin(a)*L*.4;
+    const gr=g.createLinearGradient(x,y,ex,ey);
+    gr.addColorStop(0,'rgba(255,255,255,0)'); gr.addColorStop(1,'rgba(255,255,255,.85)');
+    g.strokeStyle=gr; g.lineWidth=2.2*D; g.beginPath(); g.moveTo(x,y); g.lineTo(ex,ey); g.stroke();
+    const hg=g.createRadialGradient(ex,ey,0,ex,ey,9*D);
+    hg.addColorStop(0,'rgba(255,255,255,.95)'); hg.addColorStop(1,'rgba(255,255,255,0)');
+    g.fillStyle=hg; g.beginPath(); g.arc(ex,ey,9*D,0,7); g.fill();
+  }
+  /* occasional ringed planet, kept clear of the card zone */
+  if(R()<.45){
+    const top=R()<.5, x=W*0.13+R()*W*0.74;
+    const y=top? H*0.047+R()*H*0.083 : H*0.859+R()*H*0.083, r=(34+R()*56)*D;
+    const gr=g.createRadialGradient(x-r*.4,y-r*.4,r*.1,x,y,r);
+    gr.addColorStop(0,hexA(P.accent[1],.95)); gr.addColorStop(.6,hexA(P.neb[0],.85)); gr.addColorStop(1,hexA(P.deep[0],.9));
+    g.globalCompositeOperation='source-over';
+    g.fillStyle=gr; g.beginPath(); g.arc(x,y,r,0,7); g.fill();
+    if(R()<.6){
+      g.save(); g.translate(x,y); g.rotate(-.4+R()*.8); g.scale(1,.28);
+      g.strokeStyle=hexA(P.accent[1],.5); g.lineWidth=3.5*D;
+      g.beginPath(); g.arc(0,0,r*1.7,0,7); g.stroke(); g.restore();
+    }
+    g.globalCompositeOperation='lighter';
+  }
+  /* floating glass orbs */
+  g.globalCompositeOperation='source-over';
+  for(let i=0;i<3;i++){
+    const x=R()*W, y=R()<.5?R()*H*0.16:H*0.844+R()*H*0.146, r=(9+R()*24)*D;
+    g.fillStyle='rgba(255,255,255,.05)'; g.beginPath(); g.arc(x,y,r,0,7); g.fill();
+    g.strokeStyle='rgba(255,255,255,.22)'; g.lineWidth=1.2*D; g.beginPath(); g.arc(x,y,r,0,7); g.stroke();
+    g.fillStyle='rgba(255,255,255,.5)'; g.beginPath(); g.arc(x-r*.35,y-r*.35,r*.16,0,7); g.fill();
+  }
+
+  readabilityPass(g);
+
+  $('fgA').setAttribute('stop-color',P.accent[0]);
+  $('fgB').setAttribute('stop-color',P.accent[1]);
+}
+
+function regen(fam, seed){
+  bgFam=fam; bgSeed=seed;
+  localStorage.setItem('st_bgFam',fam); localStorage.setItem('st_bgSeed',seed);
+  document.querySelectorAll('.sw').forEach(x=>x.classList.toggle('on',x.dataset.f===fam));
+  genBG(fam,seed);
+}
+const rndSeed = () => (Math.random()*2**31)|0;
+$('sw').addEventListener('click', e => {
+  const t=e.target.closest('.sw'); if(!t) return;
+  regen(t.dataset.f, rndSeed());
+});
+$('btnDice').onclick = () => { bgImage=null; localStorage.removeItem('st_bgImg'); toggleDim(false); regen(FAMS[(Math.random()*FAMS.length)|0], rndSeed()); };
+
+/* ---- custom background image ---- */
+function toggleDim(on){
+  $('iDim').style.display = on ? 'block' : 'none';
+  $('dimLbl').style.display = on ? 'block' : 'none';
+}
+function loadBgImage(src, save){
+  const im = new Image();
+  im.onload = () => {
+    bgImage = im; toggleDim(true); drawCustomBG();
+    if (save) { try { localStorage.setItem('st_bgImg', src); } catch(e){ /* too large to persist */ } }
+  };
+  im.src = src;
+}
+$('iBg').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader(); r.onload = () => loadBgImage(r.result, true); r.readAsDataURL(f);
+});
+$('btnBgClear').onclick = () => { bgImage=null; localStorage.removeItem('st_bgImg'); toggleDim(false); genBG(bgFam,bgSeed); };
+$('iDim').addEventListener('input', () => { $('dimVal').textContent = $('iDim').value + '٪'; if (bgImage) drawCustomBG(); });
+
+/* ---- Persian fonts ---- */
+/* condensed faces need a bigger point size to carry the same visual weight */
+const FONT_SCALE = { 'Ordibehesht': 1.34, 'Yekan Bakh Fat': 1.08 };
+const titleScale = () => FONT_SCALE[$('iFontTitle').value] || 1;
+const bodyScale  = () => FONT_SCALE[$('iFontBody').value]  || 1;
+
+function setFont(target, name){
+  const stack = `"${name}", "Vazir", "Segoe UI", Tahoma, sans-serif`;
+  if (target === 'title'){
+    $('oFaTitle').style.fontFamily = stack;
+    $('oLaw').style.fontFamily = stack;
+    $('oLaw').style.fontSize = Math.round(46 * K * titleScale()) + 'px';
+  } else {
+    $('oFaBody').style.fontFamily = stack;
+  }
+}
+['iFontTitle','iFontBody'].forEach(id => {
+  $(id).addEventListener('change', () => {
+    const t = id === 'iFontTitle' ? 'title' : 'body';
+    setFont(t, $(id).value);
+    localStorage.setItem('st_' + id, $(id).value);
+    autoFit();
+  });
+});
+
+/* ---- render ---- */
+function render(){
+  $('oLaw').textContent     = $('iLaw').value;
+  $('oFaTitle').textContent = $('iFaTitle').value;
+  $('oFaBody').textContent  = $('iFaBody').value;
+  $('oEnTitle').textContent = $('iEnTitle').value;
+  $('oEnBody').textContent  = $('iEnBody').value;
+  autoFit();
+}
+
+/* shrink text until the note fits the centred band */
+function autoFit(){
+  const MAX_H = H - (0.0911*H) - (0.1719*H) - pill.getBoundingClientRect().height / scale - 20*K;
+  const base = { fa:33, faT:44, enT:40, en:30 };
+  let s = 1;
+  const apply = k => {
+    $('oFaBody').style.fontSize  = (base.fa  * K * k * bodyScale())  + 'px';
+    $('oFaTitle').style.fontSize = (base.faT * K * k * titleScale()) + 'px';
+    $('oEnTitle').style.fontSize = (base.enT * K * k) + 'px';
+    $('oEnBody').style.fontSize  = (base.en  * K * k) + 'px';
+  };
+  apply(1);
+  while (s > 0.3 && note.getBoundingClientRect().height / scale > MAX_H) {
+    s -= 0.02; apply(s);
+  }
+}
+
+/* ---- images ---- */
+function hookImg(inputId, outId, key){
+  $(inputId).addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { showImg(outId, r.result); if (key) { try { localStorage.setItem(key, r.result); } catch(e){} } };
+    r.readAsDataURL(f);
+  });
+}
+function showImg(id, src){ const el = $(id); el.src = src; el.style.display = 'inline-block'; }
+hookImg('iGlyph','oGlyph', null);
+hookImg('iSign','oSign','st_sign');
+
+/* ---- scale preview to viewport ---- */
+const RAW = location.search.includes('raw');
+let scale = 1;
+function fitStage(){
+  if (RAW){
+    scale = 1;
+    $('panel').style.display = 'none';
+    document.body.style.padding = '0';
+    $('scaler').style.transform = 'none';
+    $('scaler').style.width = W + 'px';
+    $('scaler').style.height = H + 'px';
+    return;
+  }
+  const h = window.innerHeight - 40;
+  const w = $('stage').clientWidth;
+  scale = Math.min(h / H, w / W);
+  $('scaler').style.transform = `scale(${scale})`;
+  $('scaler').style.height = (H * scale) + 'px';
+  $('scaler').style.width  = (W * scale) + 'px';
+}
+
+/* =====================================================================
+   PNG EXPORT
+   backdrop-filter does not survive foreignObject rasterisation, so glass
+   is composed by hand:
+     1. paint the background canvas
+     2. repaint it blurred, clipped to each glass region
+     3. paint the DOM on top - with its own background made transparent
+        and the <canvas> hidden, otherwise the opaque card background
+        would cover everything drawn in steps 1-2.
+   ===================================================================== */
+const serialize = n => new XMLSerializer().serializeToString(n);
+
+async function rasterize(html, w, h, css){
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">` +
+    `<foreignObject width="100%" height="100%">` +
+    `<div xmlns="http://www.w3.org/1999/xhtml"><style>${css}</style>${html}</div>` +
+    `</foreignObject></svg>`;
+  const img = new Image();
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  await img.decode();
+  return img;
+}
+
+async function buildExportCanvas(){
+  const prevT = $('scaler').style.transform;
+  const prevBg = card.style.background, prevVisC = bgc.style.visibility, prevVisP = pill.style.visibility;
+  $('scaler').style.transform = 'scale(1)';
+  try {
+    const css = [...document.styleSheets[0].cssRules].map(r => r.cssText).join('\n');
+    const cardR = card.getBoundingClientRect();
+    const rel = el => { const r = el.getBoundingClientRect();
+      return { x:r.left-cardR.left, y:r.top-cardR.top, w:r.width, h:r.height }; };
+    const pr = rel(pill), nr = rel(note);
+
+    /* The pill's text is dropped when the whole card goes through foreignObject
+       (a rasteriser quirk - the same markup renders correctly on its own), so
+       it is rasterised separately and composited at its measured position. */
+    /* The clone needs an explicit box - left to size itself the rasteriser
+       collapses it and drops the label. A few px of slack absorbs sub-pixel
+       rounding (an exact width re-wrapped the text onto two lines) and
+       justify-content pins the contents to the right edge, so the slack is
+       added on the left where the blur region is widened to match. */
+    const SLACK = Math.ceil(8 * K);
+    const pc = pill.cloneNode(true);
+    pc.style.margin = '0'; pc.style.alignSelf = 'auto';
+    pc.style.justifyContent = 'flex-end';
+    pc.style.width = (Math.ceil(pr.w) + SLACK) + 'px';
+    pc.style.height = Math.ceil(pr.h) + 'px';
+    /* drop the outer shadow: the pill is composited last (its label is lost if
+       the card is painted over it), so the shadow would fall on the note's
+       header instead of behind it */
+    pc.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,.22)';
+    pr.x -= SLACK; pr.w += SLACK;
+    const PAD = Math.round(70 * K);          // room for the pill's glow/shadow
+    const PW = Math.ceil(pr.w) + 2*PAD, PH = Math.ceil(pr.h) + 2*PAD;
+    /* --k lives on #card; the clone renders outside it, so re-declare it or
+       every calc(... * var(--k)) in the pill's styles becomes invalid */
+    const wrapPill = el =>
+      `<div style="--k:${K};padding:${PAD}px;width:${Math.ceil(pr.w) + 2*PAD}px">${serialize(el)}</div>`;
+    const pillImg = await rasterize(wrapPill(pc), PW, PH, css);
+
+    /* A silhouette of the same clone - solid fill, contents hidden - masks the
+       pill's baked backdrop. Clipping to a hand-computed rounded rect instead
+       left the blurred patch visible around the pill's corners and edges;
+       masking with the shape the pill actually paints cannot drift. */
+    const ps = pc.cloneNode(true);
+    ps.style.background = '#000';
+    ps.style.borderColor = '#000';
+    ps.style.boxShadow = 'none';
+    [...ps.children].forEach(c => c.style.visibility = 'hidden');
+    const pillMask = await rasterize(wrapPill(ps), PW, PH, css);
+
+    /* backdrop + artwork, composited in the pill's own space */
+    const pillLayer = document.createElement('canvas');
+    pillLayer.width = PW; pillLayer.height = PH;
+    const pg = pillLayer.getContext('2d');
+    pg.filter = `blur(${Math.round(55*K)}px)`;
+    pg.drawImage(bgc, -(pr.x - PAD), -(pr.y - PAD));
+    pg.filter = 'none';
+    pg.globalCompositeOperation = 'destination-in';
+    pg.drawImage(pillMask, 0, 0);
+    pg.globalCompositeOperation = 'source-over';
+    pg.drawImage(pillImg, 0, 0);
+
+    /* the card's own background and the live canvas must not paint over the
+       galaxy + baked blur drawn underneath */
+    card.style.background = 'transparent';
+    bgc.style.visibility = 'hidden';
+    pill.style.visibility = 'hidden';
+    const html = serialize(card);
+    card.style.background = prevBg; bgc.style.visibility = prevVisC; pill.style.visibility = prevVisP;
+
+    const img = await rasterize(html, W, H, css);
+
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const x = cv.getContext('2d');
+    x.drawImage(bgc, 0, 0);
+    x.save();
+    x.beginPath(); x.roundRect(nr.x, nr.y, nr.w, nr.h, 34*K); x.clip();
+    x.filter = `blur(${Math.round(55*K)}px)`;
+    x.drawImage(bgc, 0, 0);
+    x.restore();
+    x.filter = 'none';
+    x.drawImage(img, 0, 0);
+    x.drawImage(pillLayer, pr.x - PAD, pr.y - PAD);
+    return cv;
+  } finally {
+    $('scaler').style.transform = prevT;
+    card.style.background = prevBg; bgc.style.visibility = prevVisC; pill.style.visibility = prevVisP;
+  }
+}
+window.buildExportCanvas = buildExportCanvas;
+
+$('btnPng').addEventListener('click', async () => {
+  try {
+    const cv = await buildExportCanvas();
+    const a = document.createElement('a');
+    a.download = ($('iLaw').value || 'story').replace(/\s+/g, '_') + `_${W}x${H}.png`;
+    a.href = cv.toDataURL('image/png');
+    a.click();
+  } catch (err) {
+    alert('خروجی PNG ناموفق بود:\n' + err.message + '\nاز حالت ?raw اسکرین‌شات بگیر.');
+  }
+});
+
+/* ---- size switching ---- */
+$('iSize').addEventListener('change', () => {
+  applySize($('iSize').value);
+  setFont('title', $('iFontTitle').value);
+  genBG(bgFam, bgSeed);
+  fitStage(); render();
+});
+
+/* ---- persistence ---- */
+$('btnSave').onclick = () => { FIELDS.forEach(f => localStorage.setItem('st_' + f, $(f).value)); alert('ذخیره شد'); };
+$('btnClear').onclick = () => { FIELDS.forEach(f => { $(f).value = ''; localStorage.removeItem('st_' + f); }); render(); };
+
+(async function boot(){
+  FIELDS.forEach(f => { const v = localStorage.getItem('st_' + f); if (v !== null) $(f).value = v; });
+  ['iFontTitle','iFontBody'].forEach(id => { const v = localStorage.getItem('st_' + id); if (v) $(id).value = v; });
+
+  const q = new URLSearchParams(location.search);
+  const size = q.get('size') || localStorage.getItem('st_size') || 'story';
+  $('iSize').value = SIZES[size] ? size : 'story';
+  applySize($('iSize').value);
+
+  setFont('title', $('iFontTitle').value);
+  setFont('body',  $('iFontBody').value);
+
+  const sg = localStorage.getItem('st_sign'); if (sg) showImg('oSign', sg);
+
+  /* background: URL params (?fam=blue&seed=123) > saved > random */
+  const fam = q.get('fam') || localStorage.getItem('st_bgFam') || FAMS[(Math.random()*FAMS.length)|0];
+  const seed = q.has('seed') ? (+q.get('seed')|0) : (+localStorage.getItem('st_bgSeed') || rndSeed());
+  bgFam = FAMS.includes(fam) ? fam : 'blue'; bgSeed = seed;
+  document.querySelectorAll('.sw').forEach(x=>x.classList.toggle('on',x.dataset.f===bgFam));
+
+  FIELDS.forEach(f => $(f).addEventListener('input', render));
+  window.addEventListener('resize', () => { fitStage(); autoFit(); });
+  fitStage(); render();
+
+  const saved = localStorage.getItem('st_bgImg');
+  if (saved && !q.has('fam')) loadBgImage(saved, false); else regen(bgFam, bgSeed);
+
+  /* ?export — show exactly what the downloaded PNG contains */
+  if (q.has('export')){
+    await new Promise(r => setTimeout(r, 400));
+    const cv = await buildExportCanvas();
+    document.body.innerHTML = '';
+    document.body.style.cssText = 'margin:0;padding:0;background:#000';
+    cv.style.cssText = 'display:block';
+    document.body.appendChild(cv);
+  }
+})();
+</script>
+</body>
+</html>

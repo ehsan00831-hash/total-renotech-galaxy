@@ -1,0 +1,49 @@
+# One-click deploy config for Render (https://render.com)
+# This Blueprint runs the site on Render's FREE plan.
+#
+# Deploy button (repo owner can share/use):
+#   https://render.com/deploy?repo=https://github.com/ehsan00831-hash/total-renotech-galaxy
+services:
+  - type: web
+    name: total-renotech-galaxy
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      # You will be prompted to enter these when deploying (never committed).
+      - key: MAIL_USER
+        sync: false
+      - key: MAIL_PASS
+        sync: false
+      - key: LEAD_TO
+        sync: false
+      # Optional — enable LIVE Google rating/review count on the site.
+      # Leave blank to use the built-in graceful fallback (never fakes a
+      # live count). GOOGLE_PLACES_API_KEY is accepted as a legacy alias
+      # for GOOGLE_API_KEY.
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GOOGLE_PLACE_ID
+        sync: false
+      # Optional — no API required: point the review buttons at real
+      # Google links (e.g. your g.page/r/... "leave a review" short link).
+      - key: GOOGLE_REVIEWS_URL
+        sync: false
+      - key: GOOGLE_LEAVE_REVIEW_URL
+        sync: false
+
+# -------------------------------------------------------------------
+# OPTIONAL: keep data/customers.xlsx permanently (paid Starter plan, ~$7/mo).
+# Change `plan: free` above to `plan: starter`, then add under the service:
+#
+#     envVars:
+#       - key: DATA_DIR
+#         value: /var/data
+#     disk:
+#       name: leads-data
+#       mountPath: /var/data
+#       sizeGB: 1
+#
+# Leads are emailed to you regardless, so the free plan loses no customers.
+# -------------------------------------------------------------------
