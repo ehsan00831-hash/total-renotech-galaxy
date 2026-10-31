@@ -44,6 +44,13 @@ services:
         sync: false
       - key: GOOGLE_PRIVATE_KEY
         sync: false
+      # Employee attendance page (/attendance). One unique 4–8 digit PIN each:
+      #   Ali:1234, Reza:5678
+      - key: EMPLOYEE_PINS
+        sync: false
+      # Time zone for all timestamps (Render runs in UTC).
+      - key: TIME_ZONE
+        value: America/Toronto
 
 # -------------------------------------------------------------------
 # OPTIONAL: keep data/customers.xlsx permanently (paid Starter plan, ~$7/mo).
