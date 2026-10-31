@@ -181,10 +181,20 @@ async function flush() {
   if (queue.length) schedule(FLUSH_DELAY_MS);
 }
 
+// Read the last `limit` rows of a tab (used to look up the latest check-in
+// after a server restart, since the free host forgets memory and disk).
+async function readRows(tab, limit) {
+  if (!enabled()) return [];
+  const d = await api('GET', '/values/' + encodeURIComponent("'" + tab + "'!A:F") +
+    '?valueRenderOption=FORMATTED_VALUE');
+  const rows = (d.values || []).slice(1); // drop header
+  return rows.slice(-(limit || 500));
+}
+
 // USER_ENTERED lets dates/phones format nicely; neutralise formula injection.
 function safeCell(v) {
   const s = String(v == null ? '' : v);
   return /^[=+\-@]/.test(s) ? "'" + s : s;
 }
 
-module.exports = { enabled, append, flush };
+module.exports = { enabled, append, flush, readRows };

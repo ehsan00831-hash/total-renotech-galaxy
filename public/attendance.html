@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#0b2a5b" />
+  <title>Attendance — Total Réno-Tech</title>
+  <link rel="icon" href="assets/logo.png" />
+  <style>
+    :root {
+      --ink: #0e1f3a; --muted: #5a6b8c; --blue: #1657d0; --blue-deep: #0b2a5b;
+      --green: #12805c; --red: #c0392b; --gold: #c9a227; --line: rgba(14, 60, 140, 0.14);
+      --card: rgba(255, 255, 255, 0.94);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      color: var(--ink); min-height: 100vh; min-height: 100dvh;
+      background: linear-gradient(160deg, #ffffff 0%, #eef3fa 55%, #e3e9f2 100%);
+      display: flex; align-items: center; justify-content: center; padding: 16px;
+    }
+    .card {
+      width: 100%; max-width: 400px; background: var(--card); border-radius: 22px;
+      border: 1px solid var(--line); box-shadow: 0 18px 50px rgba(14, 50, 120, 0.12);
+      padding: 26px 22px 22px; text-align: center;
+    }
+    .logo { width: 150px; height: auto; margin-bottom: 8px; }
+    h1 { font-size: 1.25rem; color: var(--blue-deep); }
+    .sub { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+    .clock { font-size: 2.6rem; font-weight: 700; letter-spacing: 1px; margin: 16px 0 2px; font-variant-numeric: tabular-nums; }
+    .date { color: var(--muted); font-size: 0.9rem; margin-bottom: 18px; }
+    label { display: block; text-align: left; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin: 12px 0 6px; }
+    input {
+      width: 100%; font: inherit; padding: 14px; border-radius: 12px; border: 1.5px solid var(--line);
+      background: #fff; color: var(--ink); outline: none;
+    }
+    input:focus { border-color: var(--blue); }
+    #pin { font-size: 1.6rem; text-align: center; letter-spacing: 0.5em; }
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+    button {
+      font: inherit; font-weight: 700; font-size: 1.05rem; border: 0; border-radius: 14px;
+      padding: 18px 10px; color: #fff; cursor: pointer; transition: transform 0.08s, opacity 0.2s;
+    }
+    button:active { transform: scale(0.97); }
+    button:disabled { opacity: 0.55; cursor: wait; }
+    button small { display: block; font-weight: 500; font-size: 0.75rem; opacity: 0.9; }
+    .in { background: var(--green); }
+    .out { background: var(--red); }
+    .msg { min-height: 1.4em; margin-top: 16px; font-size: 0.95rem; font-weight: 600; }
+    .msg.ok { color: var(--green); }
+    .msg.err { color: var(--red); }
+    .msg.warn { color: #9a6b00; }
+    .geo { display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: 14px; font-size: 0.8rem; color: var(--muted); }
+    .geo input { width: auto; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <img class="logo" src="assets/logo.png" alt="Total Réno-Tech" />
+    <h1>Attendance · Présence</h1>
+    <p class="sub">Check in / out · Entrée / Sortie</p>
+
+    <div class="clock" id="clock">--:--</div>
+    <div class="date" id="date"></div>
+
+    <form id="form" autocomplete="off">
+      <label for="pin">PIN · NIP</label>
+      <input id="pin" name="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" required />
+
+      <label for="note">Note / job site · Chantier (optional)</label>
+      <input id="note" name="note" type="text" maxlength="300" placeholder="e.g. 123 Rue Saint-Denis" />
+
+      <div class="geo">
+        <input id="geo" type="checkbox" checked />
+        <label for="geo" style="margin:0;font-weight:500">Share my location · Partager ma position</label>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="in" data-action="in">Check in<small>Entrée</small></button>
+        <button type="button" class="out" data-action="out">Check out<small>Sortie</small></button>
+      </div>
+      <p class="msg" id="msg" role="status" aria-live="polite"></p>
+    </form>
+  </main>
+
+  <script>
+    (function () {
+      var clock = document.getElementById('clock');
+      var dateEl = document.getElementById('date');
+      function tick() {
+        var d = new Date();
+        clock.textContent = d.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Toronto' });
+        dateEl.textContent = d.toLocaleDateString('en-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Toronto' });
+      }
+      tick();
+      setInterval(tick, 10000);
+
+      var pin = document.getElementById('pin');
+      var note = document.getElementById('note');
+      var geo = document.getElementById('geo');
+      var msg = document.getElementById('msg');
+      var buttons = document.querySelectorAll('button[data-action]');
+
+      try { geo.checked = localStorage.getItem('att_geo') !== '0'; } catch (e) {}
+      geo.addEventListener('change', function () {
+        try { localStorage.setItem('att_geo', geo.checked ? '1' : '0'); } catch (e) {}
+      });
+
+      function say(text, cls) { msg.textContent = text; msg.className = 'msg ' + (cls || ''); }
+      function busy(on) { buttons.forEach(function (b) { b.disabled = on; }); }
+
+      // Location is best-effort: never wait more than 5 s, never block the punch.
+      function getPosition() {
+        return new Promise(function (resolve) {
+          if (!geo.checked || !navigator.geolocation) return resolve(null);
+          var done = false;
+          var timer = setTimeout(function () { if (!done) { done = true; resolve(null); } }, 5000);
+          navigator.geolocation.getCurrentPosition(
+            function (p) { if (!done) { done = true; clearTimeout(timer); resolve(p.coords); } },
+            function () { if (!done) { done = true; clearTimeout(timer); resolve(null); } },
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 60000 }
+          );
+        });
+      }
+
+      var ERRORS = {
+        bad_pin: 'Wrong PIN · NIP invalide',
+        rate_limited: 'Too many tries — wait 15 min · Trop d’essais, attendez 15 min',
+        not_configured: 'Attendance is not set up yet · Non configuré',
+      };
+
+      function punch(action) {
+        if (!/^[0-9]{4,8}$/.test(pin.value)) { say('Enter your PIN · Entrez votre NIP', 'err'); pin.focus(); return; }
+        busy(true);
+        say(action === 'in' ? 'Checking in… · Entrée…' : 'Checking out… · Sortie…', '');
+        getPosition().then(function (c) {
+          return fetch('/api/attendance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              pin: pin.value, action: action, note: note.value,
+              lat: c ? c.latitude : null, lng: c ? c.longitude : null,
+            }),
+          });
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (j) {
+            if (!j.ok) return say(ERRORS[j.error] || 'Error — try again · Erreur, réessayez', 'err');
+            var text = (j.action === 'Check-in' ? '✔ Welcome, ' : '✔ Goodbye, ') + j.name + ' — ' + j.time;
+            if (j.hours) text += ' · ' + j.hours + ' h';
+            if (j.warning === 'already_in') return say(text + ' (you were already checked in)', 'warn');
+            if (j.warning === 'no_checkin') return say(text + ' (no check-in found today)', 'warn');
+            say(text, 'ok');
+            pin.value = '';
+            note.value = '';
+          })
+          .catch(function () { say('Network error — try again · Erreur réseau', 'err'); })
+          .finally(function () { busy(false); });
+      }
+
+      buttons.forEach(function (b) {
+        b.addEventListener('click', function () { punch(b.getAttribute('data-action')); });
+      });
+      document.getElementById('form').addEventListener('submit', function (e) { e.preventDefault(); });
+    })();
+  </script>
+</body>
+</html>
