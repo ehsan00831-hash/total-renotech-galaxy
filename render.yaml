@@ -32,6 +32,18 @@ services:
         sync: false
       - key: GOOGLE_LEAVE_REVIEW_URL
         sync: false
+      # Optional — mirror every lead into a Google Sheet (live, from any device).
+      # Create a service account in Google Cloud, enable the Sheets API,
+      # share the spreadsheet with the service-account email as Editor.
+      # Provide EITHER the full JSON key OR the email + private key.
+      - key: GOOGLE_SHEETS_ID
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: GOOGLE_SERVICE_ACCOUNT_EMAIL
+        sync: false
+      - key: GOOGLE_PRIVATE_KEY
+        sync: false
 
 # -------------------------------------------------------------------
 # OPTIONAL: keep data/customers.xlsx permanently (paid Starter plan, ~$7/mo).

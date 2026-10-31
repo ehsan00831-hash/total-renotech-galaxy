@@ -4,6 +4,7 @@
  *   - serves the static galaxy site from /public
  *   - saves form submissions into a single real Excel workbook (data/customers.xlsx)
  *     with one worksheet per form type: Customers / Comments / Specifications.
+ *   - mirrors every submission to Google Sheets in the background (sheets.js)
  */
 
 require('dotenv').config();
@@ -11,9 +12,11 @@ require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
 const express = require('express');
+const compression = require('compression');
 const ExcelJS = require('exceljs');
 const { rateLimit, ipKeyGenerator } = require('express-rate-limit');
 const mailer = require('./mailer');
+const sheets = require('./sheets');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -45,9 +48,18 @@ const XLSX_PATH = path.join(DATA_DIR, 'customers.xlsx');
 
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
+app.use(compression());
 app.use(express.json({ limit: '64kb' }));
 app.use(express.urlencoded({ extended: true, limit: '64kb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+// Cache static assets in the browser: images/fonts for 7 days, HTML always revalidated.
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: true,
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
+    else if (/\.(jpe?g|png|webp|svg|ico|woff2?)$/i.test(filePath)) res.setHeader('Cache-Control', 'public, max-age=604800');
+    else res.setHeader('Cache-Control', 'public, max-age=3600');
+  },
+}));
 
 // Serialize all writes so concurrent submits never corrupt the .xlsx file.
 let writeChain = Promise.resolve();
@@ -87,9 +99,22 @@ function styleHeader(row) {
   row.height = 22;
 }
 
+// The workbook is loaded from disk ONCE and kept in memory; each submission
+// only appends a row and writes the file (no re-parse of the whole .xlsx).
+let workbookPromise = null;
+function getWorkbook() {
+  if (!workbookPromise) {
+    workbookPromise = (async () => {
+      const wb = new ExcelJS.Workbook();
+      if (fs.existsSync(XLSX_PATH)) await wb.xlsx.readFile(XLSX_PATH);
+      return wb;
+    })().catch((err) => { workbookPromise = null; throw err; });
+  }
+  return workbookPromise;
+}
+
 async function appendRow(form, values) {
-  const workbook = new ExcelJS.Workbook();
-  if (fs.existsSync(XLSX_PATH)) await workbook.xlsx.readFile(XLSX_PATH);
+  const workbook = await getWorkbook();
 
   let sheet = workbook.getWorksheet(form.sheet);
   if (!sheet) {
@@ -103,7 +128,15 @@ async function appendRow(form, values) {
   // Always add positionally (by array) — column keys are not persisted in .xlsx,
   // so a key-based addRow() on a re-read workbook would write a blank row.
   sheet.addRow(values).commit();
-  await workbook.xlsx.writeFile(XLSX_PATH);
+  // Atomic write: a crash mid-write can never leave a corrupt customers.xlsx.
+  const tmp = XLSX_PATH + '.tmp';
+  try {
+    await workbook.xlsx.writeFile(tmp);
+    await fs.promises.rename(tmp, XLSX_PATH);
+  } catch (err) {
+    workbookPromise = null; // reload from disk next time so memory matches the file
+    throw err;
+  }
 }
 
 function handle(form, extractAndValidate) {
@@ -119,10 +152,13 @@ function handle(form, extractAndValidate) {
     const stamp = new Date().toLocaleString('en-CA', { hour12: false });
     const values = [stamp].concat(form.order.map((k) => result.data[k]));
 
-    writeChain = writeChain.then(() => appendRow(form, values));
-    writeChain
+    const saved = writeChain.then(() => appendRow(form, values));
+    writeChain = saved.catch(() => {}); // one failed write must not break the chain
+    saved
       .then(() => {
         res.json({ ok: true });
+        // Background Google Sheets sync (batched, retried) — never blocks the reply.
+        sheets.append(form.sheet, form.headers, values);
         // Best-effort email notification — never blocks or fails the submission.
         mailer.sendLead(form.sheet, form.headers, values).catch((err) => {
           console.error('Lead email failed (saved to Excel anyway):', err.message);
@@ -278,12 +314,21 @@ app.get('/api/reviews', async (_req, res) => {
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
+// Warm up the in-memory workbook so the first submission is fast too.
+getWorkbook().catch((err) => console.error('Could not load ' + XLSX_PATH + ':', err.message));
+
 app.listen(PORT, () => {
   console.log('\n  Total — Plomberie & Construction galaxy is live:  http://localhost:' + PORT);
   console.log('  Form submissions are saved to:  ' + XLSX_PATH);
+  console.log('  Google Sheets: ' + (sheets.enabled() ? 'ENABLED (background sync)' : 'disabled (set GOOGLE_SHEETS_ID + service account in .env to enable)'));
   console.log('  Lead emails: ' + (mailer.enabled() ? 'ENABLED -> ' + mailer.LEAD_TO : 'disabled (set MAIL_USER / MAIL_PASS in .env to enable)'));
   console.log('  Google reviews: ' + (PLACES_KEY && PLACE_ID
     ? 'LIVE (Places API)'
     : 'fallback (set GOOGLE_API_KEY + GOOGLE_PLACE_ID for live data)'
   ) + (REVIEWS_URL_OVERRIDE || LEAVE_URL_OVERRIDE ? ' + manual URL override(s) active' : '') + '\n');
+});
+
+// On redeploy/shutdown, push any queued Google Sheets rows before exiting.
+process.on('SIGTERM', () => {
+  Promise.race([sheets.flush(), new Promise((r) => setTimeout(r, 5000))]).finally(() => process.exit(0));
 });
