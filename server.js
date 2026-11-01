@@ -231,116 +231,6 @@ app.post('/api/specification', formLimiter, handle(FORMS.specification, (b) => {
   return { data };
 }));
 
-// ---- Employee attendance (check-in / check-out) ----
-// EMPLOYEE_PINS = "Ali:1234, Reza:5678"  — each employee gets a unique PIN.
-// The PIN identifies the employee, so nobody can clock in for someone else.
-const ATTENDANCE = {
-  sheet: 'Attendance',
-  headers: ['Date / Time', 'Employee', 'Action', 'Hours Worked', 'Note', 'Location'],
-};
-const EMPLOYEES = new Map(); // pin -> name
-(process.env.EMPLOYEE_PINS || '').split(',').forEach((pair) => {
-  const i = pair.lastIndexOf(':');
-  if (i < 1) return;
-  const name = clean(pair.slice(0, i), 80);
-  const pin = pair.slice(i + 1).trim();
-  if (!name || !/^[0-9]{4,8}$/.test(pin)) return console.error('EMPLOYEE_PINS: skipped invalid entry "' + name + '"');
-  if (EMPLOYEES.has(pin)) return console.error('EMPLOYEE_PINS: duplicate PIN for "' + name + '" — skipped');
-  EMPLOYEES.set(pin, name);
-});
-
-// Stricter limiter for PIN guessing: 20 tries / 15 min per IP.
-const attendanceLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 20,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  keyGenerator: (req) => req.headers['cf-connecting-ip'] || ipKeyGenerator(req.ip),
-  handler: (_req, res) => res.status(429).json({ ok: false, error: 'rate_limited', retryAfter: 15 }),
-});
-
-// Parse a local "YYYY-MM-DD HH:MM[:SS]" (or M/D/YYYY as Sheets may display it)
-// as a naive timestamp — both ends are in the same time zone, so the
-// difference is the real duration.
-function parseStamp(s) {
-  let m = /(\d{4})-(\d{1,2})-(\d{1,2})\D+(\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(s || '');
-  if (m) return Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0));
-  m = /(\d{1,2})\/(\d{1,2})\/(\d{4})\D+(\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(s || '');
-  if (m) return Date.UTC(+m[3], m[1] - 1, +m[2], +m[4], +m[5], +(m[6] || 0));
-  return null;
-}
-
-// Latest attendance action per employee: memory -> Excel -> Google Sheet.
-const lastAction = new Map(); // name -> { action, stamp }
-async function findLastAction(name) {
-  if (lastAction.has(name)) return lastAction.get(name);
-  const pick = (rows) => {
-    for (let i = rows.length - 1; i >= 0; i--) {
-      if (String(rows[i][1]) === name) return { action: String(rows[i][2]), stamp: String(rows[i][0]) };
-    }
-    return null;
-  };
-  try {
-    const ws = (await getWorkbook()).getWorksheet(ATTENDANCE.sheet);
-    if (ws) {
-      const rows = [];
-      ws.eachRow((row, n) => { if (n > 1) rows.push(row.values.slice(1).map((v) => (v == null ? '' : v))); });
-      const hit = pick(rows);
-      if (hit) return hit;
-    }
-  } catch (_) { /* fall through */ }
-  try {
-    return pick(await sheets.readRows(ATTENDANCE.sheet, 1000));
-  } catch (err) {
-    console.error('Attendance lookup in Google Sheets failed:', err.message);
-    return null;
-  }
-}
-
-app.post('/api/attendance', attendanceLimiter, async (req, res) => {
-  const b = req.body || {};
-  if (!EMPLOYEES.size) return res.status(503).json({ ok: false, error: 'not_configured' });
-  const name = EMPLOYEES.get(String(b.pin || '').trim());
-  if (!name) return res.status(401).json({ ok: false, error: 'bad_pin' });
-  const action = b.action === 'out' ? 'Check-out' : b.action === 'in' ? 'Check-in' : '';
-  if (!action) return res.status(400).json({ ok: false, error: 'bad_action' });
-
-  const note = clean(b.note, 300);
-  const lat = Number(b.lat);
-  const lng = Number(b.lng);
-  const location = Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180
-    ? 'https://maps.google.com/?q=' + lat.toFixed(5) + ',' + lng.toFixed(5)
-    : '';
-
-  const stamp = nowStamp();
-  const prev = await findLastAction(name);
-  let hours = '';
-  let warning = '';
-  if (action === 'Check-out') {
-    const start = prev && prev.action === 'Check-in' ? parseStamp(prev.stamp) : null;
-    const end = parseStamp(stamp);
-    if (start != null && end >= start && end - start < 24 * 3600 * 1000) hours = ((end - start) / 3600000).toFixed(2);
-    else warning = 'no_checkin';
-  } else if (prev && prev.action === 'Check-in') {
-    warning = 'already_in';
-  }
-
-  const values = [stamp, name, action, hours, note, location];
-  const saved = writeChain.then(() => appendRow(ATTENDANCE, values));
-  writeChain = saved.catch(() => {});
-  try {
-    await saved;
-  } catch (err) {
-    console.error('Failed to write Attendance:', err);
-    return res.status(500).json({ ok: false, error: 'write_failed' });
-  }
-  lastAction.set(name, { action, stamp });
-  sheets.append(ATTENDANCE.sheet, ATTENDANCE.headers, values);
-  res.json({ ok: true, name, action, time: stamp.slice(11, 16), hours, warning });
-});
-
-app.get('/attendance', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'attendance.html')));
-
 // ---- Google Reviews ----
 // Priority: live Google Places API -> owner-provided data/reviews.json -> static fallback.
 // Never fabricates live numbers: `live:false` means the frontend shows the
@@ -443,7 +333,6 @@ app.listen(PORT, () => {
   console.log('\n  Total — Plomberie & Construction galaxy is live:  http://localhost:' + PORT);
   console.log('  Form submissions are saved to:  ' + XLSX_PATH);
   console.log('  Google Sheets: ' + (sheets.enabled() ? 'ENABLED (background sync)' : 'disabled (set GOOGLE_SHEETS_ID + service account in .env to enable)'));
-  console.log('  Attendance: ' + (EMPLOYEES.size ? EMPLOYEES.size + ' employee(s) -> /attendance' : 'disabled (set EMPLOYEE_PINS in .env, e.g. "Ali:1234,Reza:5678")'));
   console.log('  Lead emails: ' + (mailer.enabled() ? 'ENABLED -> ' + mailer.LEAD_TO : 'disabled (set MAIL_USER / MAIL_PASS in .env to enable)'));
   console.log('  Google reviews: ' + (PLACES_KEY && PLACE_ID
     ? 'LIVE (Places API)'
